@@ -1,0 +1,91 @@
+unit UnitAlgorithms;
+
+interface
+
+uses
+   UnitTGraphModel, System.Generics.Collections;
+
+type
+   PDijkstraVertex = ^TDijkstraVertex;
+   TDijkstraVertex = record
+      FPVertexModel, FPPrevVertexModel = TVertexModel;
+      FPEdgeModelWithPrevVertex = TEdgeModel;
+      FMinLength = Cardinal;
+      FVisited = Boolean;
+      constructor Create(VertexModelPointer: PVertexModel);
+   end;
+
+   TDijkstraList = class(TList<PDijkstraVertex>)
+   public
+      function GetDijkstraVertex(VertexModelPointer: PVertexModel): PDijkstraVertex;
+      function GetNotVisitedDijkstraVertexWithLeastLength: PDijkstraVertex;
+      function GetWayTo(VertexModelPointer: PVertexModel): TEdgesModelsPointers;
+   end;
+
+
+function DijkstraAlgorithm(Graph: TGraphModel; StartVertexModelPointer: PVertexModel): TDijkstraList;
+
+implementation
+
+function DijkstraAlgorithm(Graph: TGraphModel; StartVertexModelPointer: PVertexModel): TDijkstraList;
+var
+//   DijkstraVertexes: TDijkstraList;
+   VertexesModelsPointers: TVertexesModelsPointers;
+   i: Integer;
+begin
+//   DijkstraVertexes:= ;
+   Result:= TDijkstraList.Create;
+   VertexesModelsPointers:= Graph.GetVertexesModelsPointers;
+   for i := 0 to High(VertexesModelsPointers) do
+      Result.Add(TDijkstraVertex.Create(VertexesModelsPointers[i]));
+
+
+end;
+
+{ TDijkstraVertex }
+
+constructor TDijkstraVertex.Create(VertexModelPointer: PVertexModel);
+begin
+   FPvertexModel:= VertexModelPointer;
+   FPPrevVertexModel:= nil;
+   FPEdgeModelWithPrevVertex:= nil;
+   FMinLength:= High(Cardinal);
+   FVisited:= False;
+end;
+
+
+{ TDijkstraList }
+
+function TDijkstraList.GetDijkstraVertex(
+  VertexModelPointer: PVertexModel): PDijkstraVertex;
+var
+   i: Integer;
+begin
+   Result:= nil;
+   for i := 0 to Count - 1 do
+      if Items[i].FPVertexModel = VertexModelPointer then
+      begin
+         Result:= Items[i];
+         break;
+      end;
+end;
+
+function TDijkstraList.GetNotVisitedDijkstraVertexWithLeastLength: PDijkstraVertex;
+var
+   i, CurrentIndex: Integer;
+begin
+   Result:= nil;
+   CurrentIndex:= -1;
+   for i := 0 to Count - 1 do
+      if not Items[i].FVisited then
+
+
+end;
+
+function TDijkstraList.GetWayTo(
+  VertexModelPointer: PVertexModel): TEdgesModelsPointers;
+begin
+
+end;
+
+end.

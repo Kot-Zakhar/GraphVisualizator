@@ -1,0 +1,79 @@
+object FormEdgeEdit: TFormEdgeEdit
+  Left = 0
+  Top = 0
+  BorderIcons = []
+  BorderStyle = bsToolWindow
+  Caption = 'Edit Edge'
+  ClientHeight = 218
+  ClientWidth = 261
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object LabelName: TLabel
+    Left = 24
+    Top = 24
+    Width = 58
+    Height = 13
+    Caption = 'Edge Name:'
+  end
+  object LabelValue: TLabel
+    Left = 24
+    Top = 64
+    Width = 57
+    Height = 13
+    Caption = 'Edge Value:'
+  end
+  object ButtonCancel: TBitBtn
+    Left = 160
+    Top = 168
+    Width = 75
+    Height = 25
+    Kind = bkCancel
+    NumGlyphs = 2
+    TabOrder = 4
+  end
+  object ButtonOk: TBitBtn
+    Left = 24
+    Top = 168
+    Width = 75
+    Height = 25
+    Kind = bkOK
+    NumGlyphs = 2
+    TabOrder = 3
+    OnClick = ButtonOkClick
+  end
+  object EditName: TEdit
+    Left = 114
+    Top = 21
+    Width = 121
+    Height = 21
+    TabOrder = 0
+    OnKeyUp = EditKeyUp
+  end
+  object EditValue: TEdit
+    Left = 114
+    Top = 61
+    Width = 121
+    Height = 21
+    TabOrder = 1
+    OnKeyUp = EditValueKeyUp
+  end
+  object RadioGroupDirection: TRadioGroup
+    Left = 24
+    Top = 104
+    Width = 211
+    Height = 49
+    Caption = 'Edge Diirection'
+    Columns = 2
+    Items.Strings = (
+      'Bidirectional'
+      'Unidirectional')
+    TabOrder = 2
+  end
+end

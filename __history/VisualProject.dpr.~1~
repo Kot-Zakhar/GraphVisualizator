@@ -1,0 +1,14 @@
+program VisualProject;
+
+uses
+  Vcl.Forms,
+  UnitVisualForm in 'UnitVisualForm.pas' {FrmVisual};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TFrmVisual, FrmVisual);
+  Application.Run;
+end.

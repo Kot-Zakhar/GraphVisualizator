@@ -1,0 +1,49 @@
+unit UnitTypes;
+
+interface
+
+uses Vcl.Graphics;
+
+const
+   NameLength = 20;
+
+type
+   TIndex = Word;
+   TAmount = TIndex;
+   TEdgeValue = Integer;
+   TName = String[NameLength];
+   TDirection = (DBidirectional, DUnidirectional);
+
+   TShape = (ShCircle, ShSquare, ShTriangle, ShStar);
+   TArrowSettings = record
+      HalfAngle: Extended;
+      Length: Byte;
+   end;
+
+   TVisualSettings = record
+      Vertex: record
+         Active, Common: record
+            Line: record
+               Width: Byte;
+               Color: TColor;
+            end;
+            FillColor: TColor;
+         end;
+         TextFont: TFont;
+         Size: Word;
+         Shape: TShape;
+      end;
+      Edge: Record
+         Active, Common: record
+            Width: Byte;
+            Color: TColor;
+         end;
+         TextFont: TFont;
+         ArrowSettings: TArrowSettings;
+      end;
+   end;
+
+implementation
+
+
+end.

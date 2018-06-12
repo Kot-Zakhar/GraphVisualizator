@@ -1,0 +1,409 @@
+object FormMain: TFormMain
+  Left = 0
+  Top = 0
+  Caption = 'Graph Visualizator'
+  ClientHeight = 465
+  ClientWidth = 679
+  Color = clWhite
+  DoubleBuffered = True
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  Menu = MainMenu
+  OldCreateOrder = False
+  OnCloseQuery = FormCloseQuery
+  OnCreate = FormCreate
+  OnResize = FormResize
+  PixelsPerInch = 96
+  TextHeight = 13
+  object ImageBackground: TImage
+    Left = 0
+    Top = 0
+    Width = 679
+    Height = 465
+    Align = alClient
+    Center = True
+    Proportional = True
+    ExplicitLeft = 184
+    ExplicitTop = 232
+    ExplicitWidth = 105
+    ExplicitHeight = 105
+  end
+  object ImageMain: TImage
+    Left = 0
+    Top = 0
+    Width = 679
+    Height = 465
+    Align = alClient
+    AutoSize = True
+    Proportional = True
+    Transparent = True
+    OnDblClick = ImageMainDblClick
+    OnMouseDown = ImageMainMouseDown
+    OnMouseLeave = ImageMainMouseLeave
+    OnMouseMove = ImageMainMouseMove
+    OnMouseUp = ImageMainMouseUp
+    ExplicitWidth = 465
+    ExplicitHeight = 489
+  end
+  object MainMenu: TMainMenu
+    Left = 40
+    Top = 8
+    object MMFile: TMenuItem
+      Caption = 'File'
+      object MMNew: TMenuItem
+        Action = ActionNewGraph
+      end
+      object MMOpen: TMenuItem
+        Action = ActionOpenGraph
+      end
+      object MMSeparator3: TMenuItem
+        Caption = '-'
+      end
+      object MMSaveAsImage: TMenuItem
+        Action = ActionSaveAsImage
+      end
+      object MMSave: TMenuItem
+        Action = ActionSave
+      end
+      object MMSeparator4: TMenuItem
+        Caption = '-'
+      end
+      object MMExit: TMenuItem
+        Action = ActionExit
+      end
+    end
+    object MMEdit: TMenuItem
+      Caption = 'Edit'
+      object MMAddVertex: TMenuItem
+        Action = ActionCreateVertex
+      end
+      object MMAddEdge: TMenuItem
+        Action = ActionCreateEdge
+      end
+      object MMAddText: TMenuItem
+        Caption = 'Add Text'
+        Enabled = False
+        Visible = False
+      end
+      object MMSeparator1: TMenuItem
+        Caption = '-'
+      end
+      object MMEditVertex: TMenuItem
+        Action = ActionEditVertex
+      end
+      object MMEditEdge: TMenuItem
+        Action = ActionEditEdge
+      end
+      object MMSeparator2: TMenuItem
+        Caption = '-'
+      end
+      object MMDeleteVertex: TMenuItem
+        Action = ActionDeleteVertex
+      end
+      object MMDeleteEdge: TMenuItem
+        Action = ActionDeleteEdge
+      end
+    end
+    object MMView: TMenuItem
+      Caption = 'View'
+      object MMViewBackground: TMenuItem
+        Caption = 'Background'
+        object MMViewBgLoadImage: TMenuItem
+          Action = ActionBGLoadImage
+        end
+        object MMViewBgClean: TMenuItem
+          Action = ActionBGClear
+        end
+      end
+      object MMViewSettings: TMenuItem
+        Action = ActionSettings
+        Visible = False
+      end
+    end
+    object MMGraph: TMenuItem
+      Caption = 'Graph'
+      object MMShowIncidenceMatrix: TMenuItem
+        Action = ActionShowIncidenceMatrix
+      end
+      object MMShowAdjacencyMatrix: TMenuItem
+        Action = ActionShowAdjacencyMatrix
+      end
+      object MMShowAdjacencyList: TMenuItem
+        Action = ActionShowAdjacencyList
+      end
+      object MMGraphConvert: TMenuItem
+        Caption = 'Convert graph to...'
+        object MMGConvertOriented: TMenuItem
+          Action = ActionConvertOriented
+          Caption = '... oriented'
+        end
+        object MMGConvertWeighted: TMenuItem
+          Action = ActionConvertWeighted
+          Caption = '... weighted'
+        end
+      end
+    end
+    object MMMapMode: TMenuItem
+      Caption = 'Map mode'
+      object MMMapModeToggle: TMenuItem
+        Action = ActionMapModeToggle
+      end
+      object MMMapModeSetCoeff: TMenuItem
+        Action = ActionMapSetCoeff
+        Enabled = False
+      end
+      object MMSeparator5: TMenuItem
+        Caption = '-'
+      end
+      object MMMapModeInfo: TMenuItem
+        Caption = 'Info...'
+        OnClick = MMMapModeInfoClick
+      end
+    end
+    object MMHelp: TMenuItem
+      Caption = 'Help'
+      object MMHelpBasicHowTo: TMenuItem
+        Caption = 'Basic HowTo...'
+        ShortCut = 112
+        Visible = False
+      end
+      object MMHelpShortcuts: TMenuItem
+        Caption = 'Useful shortcuts...'
+        ShortCut = 122
+        OnClick = MMHelpShortcutsClick
+      end
+      object MMSeparator6: TMenuItem
+        Caption = '-'
+      end
+      object MMHelpAboutus1: TMenuItem
+        Caption = 'About us...'
+        ShortCut = 123
+        OnClick = MMHelpAboutus1Click
+      end
+    end
+  end
+  object ActionListMain: TActionList
+    Left = 40
+    Top = 64
+    object ActionCreateVertex: TAction
+      Category = 'Edit'
+      Caption = 'Create Vertex...'
+      ShortCut = 16470
+      OnExecute = ActionCreateVertexExecute
+    end
+    object ActionCreateEdge: TAction
+      Category = 'Edit'
+      Caption = 'Create Edge...'
+      ShortCut = 16453
+      OnExecute = ActionCreateEdgeExecute
+    end
+    object ActionEditVertex: TAction
+      Category = 'Edit'
+      Caption = 'Edit Vertex...'
+      ShortCut = 49238
+      OnExecute = ActionEditVertexExecute
+    end
+    object ActionEditEdge: TAction
+      Category = 'Edit'
+      Caption = 'Edit Edge...'
+      ShortCut = 49221
+      OnExecute = ActionEditEdgeExecute
+    end
+    object ActionDijkstraPath: TAction
+      Category = 'Graph'
+      Caption = 'Find path'
+      ShortCut = 16452
+      OnExecute = ActionDijkstraPathExecute
+    end
+    object ActionNewGraph: TAction
+      Category = 'File'
+      Caption = 'New'
+      ShortCut = 16462
+      OnExecute = ActionNewGraphExecute
+    end
+    object ActionOpenGraph: TAction
+      Category = 'File'
+      Caption = 'Open...'
+      ShortCut = 16463
+      OnExecute = ActionOpenGraphExecute
+    end
+    object ActionSaveAsImage: TAction
+      Category = 'File'
+      Caption = 'Save as image...'
+      ShortCut = 16457
+      OnExecute = ActionSaveAsImageExecute
+    end
+    object ActionSave: TAction
+      Category = 'File'
+      Caption = 'Save...'
+      ShortCut = 16467
+      OnExecute = ActionSaveExecute
+    end
+    object ActionExit: TAction
+      Category = 'File'
+      Caption = 'Exit'
+      ShortCut = 32883
+      OnExecute = ActionExitExecute
+    end
+    object ActionBGLoadImage: TAction
+      Category = 'BackGround'
+      Caption = 'Load Image...'
+      ShortCut = 16450
+      OnExecute = ActionBGLoadImageExecute
+    end
+    object ActionBGClear: TAction
+      Category = 'BackGround'
+      Caption = 'Clear'
+      ShortCut = 49218
+      OnExecute = ActionBGClearExecute
+    end
+    object ActionSettings: TAction
+      Category = 'BackGround'
+      Caption = 'Settings...'
+      ShortCut = 49235
+    end
+    object ActionShowIncidenceMatrix: TAction
+      Category = 'Graph'
+      Caption = 'Show incidence matrix...'
+      ShortCut = 49225
+      OnExecute = ActionShowIncidenceMatrixExecute
+    end
+    object ActionShowAdjacencyMatrix: TAction
+      Category = 'Graph'
+      Caption = 'Show adjacency matrix...'
+      ShortCut = 49217
+      OnExecute = ActionShowAdjacencyMatrixExecute
+    end
+    object ActionShowAdjacencyList: TAction
+      Category = 'Graph'
+      Caption = 'Show adjacency list...'
+      ShortCut = 49228
+      OnExecute = ActionShowAdjacencyListExecute
+    end
+    object ActionMapModeToggle: TAction
+      Category = 'MapMode'
+      Caption = 'On'
+      ShortCut = 16461
+      OnExecute = ActionMapModeToggleExecute
+    end
+    object ActionMapSetCoeff: TAction
+      Category = 'MapMode'
+      Caption = 'Set coefficiente...'
+      ShortCut = 49229
+      OnExecute = ActionMapSetCoeffExecute
+    end
+    object ActionDeleteEdge: TAction
+      Category = 'Edit'
+      Caption = 'Delete Edge(s)'
+      ShortCut = 8238
+      OnExecute = ActionDeleteEdgeExecute
+    end
+    object ActionDeleteVertex: TAction
+      Category = 'Edit'
+      Caption = 'Delete Vertex(es)'
+      ShortCut = 16430
+      OnExecute = ActionDeleteVertexExecute
+    end
+    object ActionConvertOriented: TAction
+      Category = 'Convert'
+      Caption = 'ActionConvertOriented'
+      ShortCut = 49231
+      OnExecute = ActionConvertOrientedExecute
+    end
+    object ActionConvertWeighted: TAction
+      Category = 'Convert'
+      Caption = 'ActionConvertWeighted'
+      ShortCut = 49239
+      OnExecute = ActionConvertWeightedExecute
+    end
+    object ActionSelectAll: TAction
+      Category = 'Edit'
+      Caption = 'Select all'
+      ShortCut = 16449
+      OnExecute = ActionSelectAllExecute
+    end
+  end
+  object PopupVertexRightClick: TPopupMenu
+    AutoPopup = False
+    Left = 160
+    Top = 168
+    object PopupVertexEditVertex: TMenuItem
+      Action = ActionEditVertex
+    end
+    object PopupVertexDeleteVertex: TMenuItem
+      Action = ActionDeleteVertex
+    end
+    object PopupVertexCreateEdge: TMenuItem
+      Action = ActionCreateEdge
+    end
+    object N1: TMenuItem
+      Caption = '-'
+    end
+    object PopupVertexFindPath: TMenuItem
+      Action = ActionDijkstraPath
+    end
+  end
+  object PopupEdgeRightClick: TPopupMenu
+    AutoPopup = False
+    Left = 272
+    Top = 168
+    object PopupEdgeEditEdge: TMenuItem
+      Action = ActionEditEdge
+    end
+    object PopupEdgeDeleteEdge: TMenuItem
+      Action = ActionDeleteEdge
+    end
+  end
+  object PopupFieldRightClick: TPopupMenu
+    Left = 40
+    Top = 168
+    object PopupFieldAddVertex: TMenuItem
+      Action = ActionCreateVertex
+    end
+  end
+  object PopupMemoRightClick: TPopupMenu
+    Left = 392
+    Top = 168
+    object MemoMessagesFont: TMenuItem
+      Caption = 'Font...'
+    end
+    object MemoMessagesClear: TMenuItem
+      Caption = 'Clear'
+    end
+  end
+  object SaveGraphDialog: TSaveDialog
+    DefaultExt = '*.graph'
+    FileName = 'MyGraph'
+    Filter = 'Graph files (*.Graph)|*.GRAPH'
+    Options = [ofHideReadOnly, ofOldStyleDialog, ofEnableSizing]
+    Title = 'Save Graph...'
+    Left = 40
+    Top = 120
+  end
+  object OpenGraphDialog: TOpenDialog
+    DefaultExt = '*.Graph'
+    Filter = 'Graph files (*.Graph)|*.GRAPH'
+    Title = 'Open Graph...'
+    Left = 160
+    Top = 120
+  end
+  object SaveImageDialog: TSavePictureDialog
+    DefaultExt = '*.bmp'
+    FileName = 'MyGraph'
+    FilterIndex = 4
+    Left = 272
+    Top = 120
+  end
+  object OpenBackgroundDialog: TOpenPictureDialog
+    DefaultExt = '.bmp'
+    Filter = 
+      'Bitmaps (*.bmp)|*.bmp|JPEG Image File (*.jpg)|*.jpg|JPEG Image F' +
+      'ile (*.jpeg)|*.jpeg'
+    FilterIndex = 0
+    Left = 392
+    Top = 120
+  end
+end

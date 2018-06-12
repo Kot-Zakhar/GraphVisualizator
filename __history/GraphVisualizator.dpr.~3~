@@ -1,0 +1,22 @@
+program GraphVisualizator;
+
+uses
+  Vcl.Forms,
+  UnitMainForm in 'UnitMainForm.pas' {FormMain},
+  UnitTGraphModel in 'UnitTGraphModel.pas',
+  UnitTGraphView in 'UnitTGraphView.pas',
+  UnitTypes in 'UnitTypes.pas',
+  UnitAlgorithms in 'UnitAlgorithms.pas',
+  UnitVertexModelEdit in 'UnitVertexModelEdit.pas' {FormVertexEdit},
+  UnitEdgeModelEdit in 'UnitEdgeModelEdit.pas' {FormEdgeEdit},
+  UnitSourceStrings in 'UnitSourceStrings.pas',
+  UnitFiles in 'UnitFiles.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TFormMain, FormMain);
+  Application.Run;
+end.

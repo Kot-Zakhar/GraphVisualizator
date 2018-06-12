@@ -1,0 +1,17 @@
+program VisualProject;
+
+uses
+  Vcl.Forms,
+  UnitVisualForm in 'UnitVisualForm.pas' {FrmVisual},
+  UnitTGraphModel in 'UnitTGraphModel.pas',
+  UnitTGraphView in 'UnitTGraphView.pas',
+  UnitTypes in 'UnitTypes.pas';
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TFrmVisual, FrmVisual);
+  Application.Run;
+end.

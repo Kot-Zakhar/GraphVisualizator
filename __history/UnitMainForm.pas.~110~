@@ -1,0 +1,847 @@
+unit UnitMainForm;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls,System.Actions, Vcl.ActnList,
+  Vcl.PlatformDefaultStyleActnCtrls, Vcl.ActnPopup, Vcl.Menus,
+  Vcl.StdCtrls, Vcl.Imaging.jpeg, Vcl.ExtDlgs, Vcl.ComCtrls,
+  UnitAlgorithms, UnitTGraphModel, UnitTGraphView, UnitTypeAndConst, Math, UnitVertexModelEdit,
+  UnitEdgeEdit, UnitFiles, UnitSourceStrings, UnitAboutUs, UnitIncidenceMatrix,
+  UnitAdjacencyMatrix, UnitAdjacencyList, UnitPersonalization;
+
+type
+  TFormMain = class(TForm)
+    MainMenu: TMainMenu;
+    MMFile: TMenuItem;
+    MMNew: TMenuItem;
+    MMSave: TMenuItem;
+    MMSeparator3: TMenuItem;
+    MMExit: TMenuItem;
+    MMOpen: TMenuItem;
+    MMSeparator4: TMenuItem;
+    MMEdit: TMenuItem;
+    MMEditEdge: TMenuItem;
+    MMSaveAsImage: TMenuItem;
+    MMSeparator1: TMenuItem;
+    MMAddVertex: TMenuItem;
+    MMAddEdge: TMenuItem;
+    MMAddText: TMenuItem;
+    MMSeparator2: TMenuItem;
+    MMView: TMenuItem;
+    MMViewBackground: TMenuItem;
+    MMViewBgLoadImage: TMenuItem;
+    MMViewBgClean: TMenuItem;
+    MMViewSettings: TMenuItem;
+    MMGraph: TMenuItem;
+    MMShowAdjacencyMatrix: TMenuItem;
+    MMShowIncidenceMatrix: TMenuItem;
+    MMShowAdjacencyList: TMenuItem;
+    MMGraphConvert: TMenuItem;
+    MMGConvertOriented: TMenuItem;
+    MMGConvertWeighted: TMenuItem;
+    MMMapMode: TMenuItem;
+    MMMapModeToggle: TMenuItem;
+    MMSeparator5: TMenuItem;
+    MMMapModeInfo: TMenuItem;
+    MMHelp: TMenuItem;
+    MMHelpBasicHowTo: TMenuItem;
+    ActionListMain: TActionList;
+    PopupVertexRightClick: TPopupMenu;
+    MMHelpShortcuts: TMenuItem;
+    MMSeparator6: TMenuItem;
+    MMHelpAboutus1: TMenuItem;
+    PopupEdgeRightClick: TPopupMenu;
+    PopupFieldRightClick: TPopupMenu;
+    ActionCreateVertex: TAction;
+    PopupFieldAddVertex: TMenuItem;
+    PopupVertexEditVertex: TMenuItem;
+    PopupVertexDeleteVertex: TMenuItem;
+    PopupVertexCreateEdge: TMenuItem;
+    PopupEdgeEditEdge: TMenuItem;
+    PopupEdgeDeleteEdge: TMenuItem;
+    ActionCreateEdge: TAction;
+    ActionEditVertex: TAction;
+    ActionEditEdge: TAction;
+    N1: TMenuItem;
+    PopupVertexFindPath: TMenuItem;
+    ActionDijkstraPath: TAction;
+    ActionNewGraph: TAction;
+    ActionOpenGraph: TAction;
+    ActionSaveAsImage: TAction;
+    ActionSave: TAction;
+    ActionExit: TAction;
+    ActionBGLoadImage: TAction;
+    ActionBGClear: TAction;
+    ActionSettings: TAction;
+    ActionShowIncidenceMatrix: TAction;
+    ActionShowAdjacencyMatrix: TAction;
+    ActionShowAdjacencyList: TAction;
+    MMEditVertex: TMenuItem;
+    ActionMapModeToggle: TAction;
+    ActionMapSetCoeff: TAction;
+    ActionDeleteEdge: TAction;
+    ActionDeleteVertex: TAction;
+    ImageMain: TImage;
+    PopupMemoRightClick: TPopupMenu;
+    MemoMessagesFont: TMenuItem;
+    MemoMessagesClear: TMenuItem;
+    ImageBackground: TImage;
+    SaveGraphDialog: TSaveDialog;
+    OpenGraphDialog: TOpenDialog;
+    SaveImageDialog: TSavePictureDialog;
+    OpenBackgroundDialog: TOpenPictureDialog;
+    MMDeleteVertex: TMenuItem;
+    MMDeleteEdge: TMenuItem;
+    MMMapModeSetCoeff: TMenuItem;
+    ActionConvertOriented: TAction;
+    ActionConvertWeighted: TAction;
+    ActionSelectAll: TAction;
+    procedure FormCreate(Sender: TObject);
+    procedure ImageMainMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure ImageMainDblClick(Sender: TObject);
+    procedure ImageMainPaint(Sender: TObject);
+    procedure ImageMainMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure ImageMainMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure ImageMainMouseLeave(Sender: TObject);
+    procedure FormResize(Sender: TObject);
+    procedure FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+    procedure MMHelpAboutus1Click(Sender: TObject);
+    procedure MMHelpShortcutsClick(Sender: TObject);
+    procedure MMMapModeInfoClick(Sender: TObject);
+    procedure MapModeUpdateGraph;
+    procedure ActionCreateVertexExecute(Sender: TObject);
+    procedure ActionDeleteEdgeExecute(Sender: TObject);
+    procedure ActionCreateEdgeExecute(Sender: TObject);
+    procedure ActionDeleteVertexExecute(Sender: TObject);
+    procedure ActionSaveExecute(Sender: TObject);
+    procedure ActionOpenGraphExecute(Sender: TObject);
+    procedure ActionNewGraphExecute(Sender: TObject);
+    procedure ActionExitExecute(Sender: TObject);
+    procedure ActionSaveAsImageExecute(Sender: TObject);
+    procedure ActionEditVertexExecute(Sender: TObject);
+    procedure ActionEditEdgeExecute(Sender: TObject);
+    procedure ActionBGLoadImageExecute(Sender: TObject);
+    procedure ActionBGClearExecute(Sender: TObject);
+    procedure ActionConvertOrientedExecute(Sender: TObject);
+    procedure ActionConvertWeightedExecute(Sender: TObject);
+    procedure ActionSelectAllExecute(Sender: TObject);
+    procedure ActionDijkstraPathExecute(Sender: TObject);
+    procedure ActionShowIncidenceMatrixExecute(Sender: TObject);
+    procedure ActionShowAdjacencyMatrixExecute(Sender: TObject);
+    procedure ActionShowAdjacencyListExecute(Sender: TObject);
+    procedure ActionMapModeToggleExecute(Sender: TObject);
+    procedure ActionMapSetCoeffExecute(Sender: TObject);
+    procedure FormClose(Sender: TObject; var Action: TCloseAction);
+    procedure ActionSettingsExecute(Sender: TObject);
+  end;
+
+var
+  FormMain: TFormMain;
+
+
+implementation
+
+{$R *.dfm}
+
+type
+   TWhatIsPressed = (PressedNothing, PressedField, PressedSingleVertex,
+     PressedSingleVertexToCreateEdge, PressedDlg, PressedPopup);
+
+var
+   GraphModel: TGraphModel;
+   GraphView: TGraphView;
+   MousePosition: TPoint;
+   WhatIsPressed: TWhatIsPressed;
+   FormIncidenceMatrix: TFormIncidenceMatrix;
+   FormAdjacencyMatrix: TFormAdjacencyMatrix;
+   FormAdjacencyList: TFormAdjacencyList;
+   FormPersonalization: TFormPersonalization;
+   MapMode: record
+      Toggled: Boolean;
+      Coefficient: Extended;
+   end;
+
+{ TFrmVisual }
+
+procedure TFormMain.ActionBGClearExecute(Sender: TObject);
+begin
+   ImageBackground.Picture.Assign(nil);
+end;
+
+procedure TFormMain.ActionBGLoadImageExecute(Sender: TObject);
+begin
+   if OpenBackgroundDialog.Execute and FileExists(OpenBackgroundDialog.FileName) then
+      ImageBackground.Picture.LoadFromFile(OpenBackgroundDialog.FileName);
+end;
+
+procedure TFormMain.ActionConvertOrientedExecute(Sender: TObject);
+begin
+   with GraphModel do
+   begin
+      if Oriented then
+         MMGConvertOriented.Caption:= '... oriented'
+      else
+         MMGConvertOriented.Caption:= '... not oriented';
+      Oriented:= not Oriented;
+   end;
+   ImageMainPaint(Sender);
+end;
+
+procedure TFormMain.ActionConvertWeightedExecute(Sender: TObject);
+begin
+   with GraphModel do
+   begin
+      if Weighted then
+      begin
+         MMGConvertWeighted.Caption:= '... weighted';
+         if MapMode.Toggled then
+         begin
+            ShowMessage(MsgMapModeIsOff);
+            ActionMapModeToggleExecute(Sender);
+         end;
+      end
+      else
+         MMGConvertWeighted.Caption:= '... not weighted';
+      Weighted:= not Weighted;
+   end;
+   ImageMainPaint(Sender);
+end;
+
+procedure TFormMain.ActionCreateEdgeExecute(Sender: TObject);
+var
+   SelectedVVPointers: TVertexesViewsPointers;
+   EdgeModelCreatedPointer: PEdgeModel;
+  i: Integer;
+  j: Integer;
+begin
+   with GraphView, GraphModel do
+   begin
+      SelectedVVPointers:= GetSelectedVertexesViewsPointers;
+      if (Length(SelectedVVPointers) = 1) and (FVertexUnderMousePointer <> nil)
+        and (FvertexUnderMousePointer <> SelectedVVPointers[0]) then
+      begin
+         FVertexUnderMousePointer^.FIsSelected:= True;
+         ActionCreateEdgeExecute(Sender);
+      end
+      else if Length(SelectedVVPointers) = 2 then
+      begin
+         if FVertexUnderMousePointer = nil then
+            ResetSelection
+         else
+            FVertexUnderMousePointer^.FIsSelected:= False;
+         WhatIsPressed:= PressedSingleVertexToCreateEdge;  // ??? is it nessesary
+         EdgeModelCreatedPointer:= CreateNewEdgeModel(
+          GetVertexModelPointer(SelectedVVPointers[
+            Integer(FVertexUnderMousePointer = SelectedVVPointers[0])]^.FIndex),
+          GetVertexModelPointer(SelectedVVPointers[
+            Integer(FVertexUnderMousePointer <> SelectedVVPointers[0])]^.FIndex),
+          TDirection(Oriented));
+         if EdgeModelCreatedPointer <> nil then
+            with EdgeModelCreatedPointer^ do
+               CreateNewEdgeView(FIndex, FPFromVertex^.FIndex, FPToVertex^.FIndex, FVertexUnderMousePointer = nil)
+         else
+            ShowMessage(MsgEdgeExists);
+
+         WhatIsPressed:= PressedNothing;
+         ImageMainPaint(Sender);
+      end
+      else if Length(SelectedVVPointers) < 2 then
+         ShowMessage(MsgToCreateEdge)
+      else
+      begin
+         ResetSelection;
+         for i := 0 to High(SelectedVVPointers) - 1 do
+            for j := i + 1 to High(SelectedVVPointers) do
+            begin
+               EdgeModelCreatedPointer:= CreateNewEdgeModel(
+                  GetVertexModelPointer(SelectedVVPointers[i]^.FIndex),
+                  GetVertexModelPointer(SelectedVVPointers[j]^.FIndex),
+                  DBidirectional);
+               if EdgeModelCreatedPointer <> nil then
+                  with EdgeModelCreatedPointer^ do
+                     CreateNewEdgeView(FIndex, FPFromVertex^.FIndex, FPToVertex^.FIndex, True)
+            end;
+         WhatIsPressed:= PressedNothing;
+         if MapMode.Toggled then
+            MapModeUpdateGraph;
+         ImageMainPaint(Sender);
+      end;
+   end;
+end;
+
+procedure TFormMain.ActionCreateVertexExecute(Sender: TObject);
+begin
+   GraphView.ResetSelection;
+   with GraphModel.CreateNewVertexModel^, GraphView do
+      CreateNewVertexView(FIndex, MousePosition, True);
+         {TODO -cDefaults: Connect to default radius of vertex}
+   ImageMainPaint(Sender);
+end;
+
+procedure TFormMain.ActionDeleteEdgeExecute(Sender: TObject);
+var
+   EdgesViewsToDelete: TEdgesViewsPointers;
+   i: Integer;
+begin
+   with GraphView, GraphModel do
+   begin
+      EdgesViewsToDelete:= GetSelectedEdgesViewsPointers;
+      if (Length(EdgesViewsToDelete) = 1) or
+        ((Length(EdgesViewsToDelete) <> 0) and
+        (MessageDlg(MsgAreYouDelete, mtConfirmation, mbYesNo, 0, mbYes) = mrYes)) then
+         for i := 0 to High(EdgesViewsToDelete) do
+         begin
+            RemoveEdgeModel(GetEdgeModelPointer(EdgesViewsToDelete[i]^.FIndex));
+            RemoveEdgeView(EdgesViewsToDelete[i]);
+         end;
+      if (Length(EdgesViewsToDelete) = 0) and (FEdgeUnderMousePointer <> nil) then
+      begin
+         RemoveEdgeModel(GetEdgeModelPointer(FEdgeUnderMousePointer^.FIndex));
+         RemoveEdgeView(FEdgeUnderMousePointer);
+         FEdgeUnderMousePointer:= nil;
+      end;
+   end;
+   ImageMainPaint(Sender);
+   WhatIsPressed:= PressedNothing;
+end;
+
+procedure TFormMain.ActionDeleteVertexExecute(Sender: TObject);
+var
+   SelectedVVPointers: TVertexesViewsPointers;
+   i: Integer;
+begin
+   with GraphModel, GraphView do
+   begin
+      SelectedVVPointers:= GetSelectedVertexesViewsPointers;
+      if (Length(SelectedVVPointers) = 1) or
+        (Length(SelectedVVPointers) <> 0) and
+        (MessageDlg(MsgAreYouDelete, mtConfirmation, mbYesNo, 0, mbYes) = mrYes) then
+         for i := 0 to High(SelectedVVPointers) do
+         begin
+            RemoveVertexModel(GetVertexModelPointer(SelectedVVPointers[i]^.FIndex));
+            RemoveVertexView(SelectedVVPointers[i]);
+         end
+      else if FVertexUnderMousePointer <> nil then
+      // deleting of single vertex from popup menu
+      begin
+         RemoveVertexModel(GetVertexModelPointer(FVertexUnderMousePointer^.FIndex));
+         RemoveVertexView(FVertexUnderMousePointer);
+         FVertexUnderMousePointer:= nil;
+      end;
+   end;
+   ImageMainPaint(Sender);
+   WhatIsPressed:= PressedNothing;
+end;
+
+procedure TFormMain.ActionDijkstraPathExecute(Sender: TObject);
+var
+   SelectedVVPointers: TVertexesViewsPointers;
+   TheDijkstraList: TDijkstraList;
+   TheWay: TEdgesModelsPointers;
+   i: Integer;
+begin
+   with GraphView, GraphModel do
+   begin
+      SelectedVVPointers:= GetSelectedVertexesViewsPointers;
+      if (Length(SelectedVVPointers) = 1) and (FVertexUnderMousePointer <> nil)
+        and (SelectedVVPointers[0] <> FVertexUnderMousePointer) then
+      begin
+         FVertexUnderMousePointer^.FIsSelected:= True;
+         ActionDijkstraPathExecute(Sender);
+      end
+      else if Length(SelectedVVPointers) = 2 then
+      begin
+         if (FVertexUnderMousePointer = SelectedVVPointers[0]) or
+           (FVertexUnderMousePointer = SelectedVVPointers[1]) then
+         begin
+            if SelectedVVPointers[0] <> FVertexUnderMousePointer then
+               TheDijkstraList:= DijkstraAlgorithm(GraphModel, GetVertexModelPointer(SelectedVVPointers[0]^.FIndex))
+            else
+               TheDijkstraList:= DijkstraAlgorithm(GraphModel, GetVertexModelPointer(SelectedVVPointers[1]^.FIndex));
+            TheWay:= TheDijkstraList.GetWayTo(GetVertexModelPointer(FVertexUnderMousePointer^.FIndex));
+         end
+         else
+         begin
+            TheDijkstraList:= DijkstraAlgorithm(GraphModel, GetVertexModelPointer(SelectedVVPointers[0]^.FIndex));
+            TheWay:= TheDijkstraList.GetWayTo(GetVertexModelPointer(SelectedVVPointers[1]^.FIndex));
+            if Length(TheWay) = 0 then
+            begin
+               TheDijkstraList:= DijkstraAlgorithm(GraphModel, GetVertexModelPointer(SelectedVVPointers[0]^.FIndex));
+               TheWay:= TheDijkstraList.GetWayTo(GetVertexModelPointer(SelectedVVPointers[1]^.FIndex));
+            end;
+         end;
+         for i := 0 to High(TheWay) do
+         begin
+            GetVertexViewPointer(TheWay[i]^.FPFromVertex^.FIndex)^.FIsSelected:= True;
+            GetVertexViewPointer(TheWay[i]^.FPToVertex^.FIndex)^.FIsSelected:= True;
+            GetEdgeViewPointer(TheWay[i]^.FIndex)^.FIsSelected:= True;
+         end;
+         TheDijkstraList.Destroy;
+         TheWay:= nil;
+      end
+      else
+   end;
+   ImageMainPaint(Sender);
+end;
+
+procedure TFormMain.ActionEditEdgeExecute(Sender: TObject);
+var
+  FormEdgeEdit: TFormEdgeEdit;
+  CurrentEVPointer: PEdgeView;
+begin
+   CurrentEVPointer:= nil;
+   with GraphView do
+   begin
+      CurrentEVPointer:= FEdgeUnderMousePointer;
+      if Length(GetSelectedEdgesViewsPointers) = 1 then
+         CurrentEVPointer:= GetSelectedEdgesViewsPointers[0];
+   end;
+   if CurrentEVPointer <> nil then
+   begin
+      With GraphModel do
+         FormEdgeEdit:= TFormEdgeEdit.Create(
+           GetEdgeModelPointer(CurrentEVPointer^.FIndex), CurrentEVPointer,
+           Oriented, Weighted, FormMain);
+      FormEdgeEdit.ShowModal;
+      FormEdgeEdit.Destroy;
+   end
+   else
+      ShowMessage(MsgSelectEdgeToEdit);
+   ImageMainPaint(Sender);
+end;
+
+procedure TFormMain.ActionEditVertexExecute(Sender: TObject);
+var
+   FormVertexEdit: TFormVertexEdit;
+   CurrentVVPointer: PVertexView;
+begin
+   with GraphView do
+   begin
+      CurrentVVPointer:= FVertexUnderMousePointer;
+      if Length(GetSelectedVertexesViewsPointers) = 1 then
+         CurrentVVPointer:= GetSelectedVertexesViewsPointers[0];
+   end;
+   if CurrentVVPointer <> nil then
+   begin
+      FormVertexEdit:= TFormVertexEdit.Create(
+        GraphModel.GetVertexModelPointer(CurrentVVPointer^.FIndex), FormMain);
+      FormVertexEdit.ShowModal;
+      FormVertexEdit.DestroySelf(False);
+   end
+   else
+     ShowMessage(MsgSelectVertexToEdit);
+   ImageMainPaint(Sender);
+end;
+
+procedure TFormMain.ActionExitExecute(Sender: TObject);
+begin
+   FormMain.Close;
+end;
+
+procedure TFormMain.ActionMapModeToggleExecute(Sender: TObject);
+begin
+   if GraphModel.Weighted then
+   begin
+      MapMode.Toggled:= not MapMode.Toggled;
+      MMMapModeSetCoeff.Enabled:= not MMMapModeSetCoeff.Enabled;
+      if MapMode.Toggled then
+      begin
+         MMMapModeToggle.Caption:= 'Off';
+         MapModeUpdateGraph;
+         ImageMainPaint(Sender);
+      end
+      else
+         MMMapModeToggle.Caption:= 'On';
+   end
+   else
+      ShowMessage(MsgMapModeMustWeight);
+end;
+
+procedure TFormMain.ActionMapSetCoeffExecute(Sender: TObject);
+begin
+   try
+      MapMode.Coefficient:= StrToFloat(InputBox('Set coefficient...', 'Coefficient (Unit/pixel):', FloatToStr(MapMode.Coefficient)));
+      MapModeUpdateGraph;
+      ImageMainPaint(Sender);
+   except
+      ShowMessage(MsgMapModeCoeffError);
+      ActionMapSetCoeffExecute(Sender);
+   end;
+end;
+
+procedure TFormMain.ActionNewGraphExecute(Sender: TObject);
+begin
+   if (GraphModel.AmountOfVertexes <> 0) and (MessageDlg(MsgWouldLikeSave, mtConfirmation, mbYesNo, 0, mbYes) = mrYes) then
+      ActionSaveExecute(Sender);
+   GraphModel.Destroy;
+   GraphView.Destroy;
+   GraphModel:= TGraphModel.Create;
+   GraphView:= TGraphView.Create;
+   ImageMainPaint(Sender);
+   ImageBackground.Destroy;
+   ImageBackground:= TImage.Create(FormMain);
+end;
+
+procedure TFormMain.ActionOpenGraphExecute(Sender: TObject);
+var
+   NewGraphModel: TGraphModel;
+   NewGraphView: TGraphView;
+begin
+   OpenGraphDialog.FileName:= '';
+   if (GraphModel.AmountOfVertexes <> 0) and (MessageDlg(MsgWouldLikeSave, mtConfirmation, mbYesNo, 0, mbYes) = mrYes) then
+      ActionSaveExecute(Sender);
+   NewGraphModel:= TGraphModel.Create;
+   NewGraphView:= TGraphView.Create;
+   if OpenGraphDialog.Execute then
+      if (Pos('.graph', LowerCase(OpenGraphDialog.FileName)) <> 0) and
+         LoadGraphFromFile(NewGraphModel, NewGraphView, OpenGraphDialog.FileName) then
+         begin
+            GraphModel.Destroy;
+            GraphView.Destroy;
+            GraphModel:= NewGraphModel;
+            GraphView:= NewGraphView;
+         end
+         else
+         begin
+            if MessageDlg(MsgCannotOpenFile, mtWarning, [mbRetry, mbCancel], 0, mbRetry) = mrRetry then
+               ActionOpenGraphExecute(Sender);
+//            ShowMessage(MsgCannotOpenFile);
+            NewGraphModel.Destroy;
+            NewGraphView.Destroy;
+         end;
+   ImageMainPaint(Sender);
+end;
+
+procedure TFormMain.ActionSaveAsImageExecute(Sender: TObject);
+begin
+   if (GraphModel.AmountOfVertexes <> 0) and SaveImageDialog.Execute then
+      if (not FileExists(SaveImageDialog.FileName) or
+       (MessageDlg(MsgFileExists + #13#10 + MsgWouldLikeOverwrite, mtConfirmation, mbYesNo, 0, mbYes) = mrYes)) then
+      begin
+         ImageMain.Picture.SaveToFile(SaveImageDialog.FileName);
+      end
+      else
+         ActionSaveAsImageExecute(Sender);
+end;
+
+procedure TFormMain.ActionSaveExecute(Sender: TObject);
+begin
+   SaveGraphDialog.FileName:= '';
+   if (GraphModel.AmountOfVertexes <> 0) and SaveGraphDialog.Execute then
+      if not FileExists(SaveGraphDialog.FileName) or
+        (MessageDlg(MsgFileExists + #10#13 + MsgWouldLikeOverwrite, mtConfirmation, mbYesNo, 0, mbYes) = mrYes)  then
+         if  (Pos('.graph', LowerCase(SaveGraphDialog.FileName)) <> 0) and
+           SaveGraphToFile(GraphModel, GraphView, SaveGraphDialog.FileName) then
+            ShowMessage(MsgGraphSaved)
+         else
+         begin
+            ShowMessage(MsgWrongExtention);
+            ActionSaveExecute(Sender);
+         end
+      else
+         ActionSaveExecute(Sender);
+end;
+
+procedure TFormMain.ActionSelectAllExecute(Sender: TObject);
+begin
+   GraphView.SelectAll;
+   ImageMainPaint(Sender);
+end;
+
+procedure TFormMain.ActionSettingsExecute(Sender: TObject);
+begin
+   FormPersonalization.ShowModal;
+   ImageMainPaint(Sender);
+end;
+
+procedure TFormMain.ActionShowAdjacencyListExecute(Sender: TObject);
+begin
+   with FormAdjacencyList do
+   begin
+      UpdateMatrix(GraphModel);
+      Show;
+   end;
+end;
+
+procedure TFormMain.ActionShowAdjacencyMatrixExecute(Sender: TObject);
+begin
+   with FormAdjacencyMatrix do
+   begin
+      UpdateMatrix(GraphModel);
+      Show;
+   end;
+end;
+
+procedure TFormMain.ActionShowIncidenceMatrixExecute(Sender: TObject);
+begin
+   with FormIncidenceMatrix do
+   begin
+      UpdateMatrix(GraphModel);
+      Show;
+   end;
+end;
+
+procedure TFormMain.FormClose(Sender: TObject; var Action: TCloseAction);
+begin
+      FreeAndNil(GraphView);
+      FreeAndNil(GraphModel);
+end;
+
+procedure TFormMain.FormCloseQuery(Sender: TObject; var CanClose: Boolean);
+begin
+   CanClose:= MessageDlg(MsgAreYouExit, mtConfirmation, mbYesNo, 0, mbYes) = mrYes;
+end;
+
+procedure TFormMain.FormCreate(Sender: TObject);
+begin
+   FormPersonalization:= TFormPersonalization.Create(FormMain);
+   GraphModel:= TGraphModel.Create;
+   GraphView:= TGraphView.Create;
+   FormIncidenceMatrix:= TFormIncidenceMatrix.Create(FormMain);
+   FormAdjacencyMatrix:= TFormAdjacencyMatrix.Create(FormMain);
+   FormAdjacencyList:= TFormAdjacencyList.Create(FormMain);
+   WhatIsPressed:= PressedNothing;
+   ImageMainPaint(Sender);
+   MapMode.Toggled:= False;
+   MapMode.Coefficient:= 1;
+end;
+
+procedure TFormMain.FormResize(Sender: TObject);
+begin
+   with ImageMain do
+   begin
+      Picture.Bitmap.Width := ImageMain.Width;
+      Picture.Bitmap.Height := ImageMain.Height;
+   end;
+   with ImageBackground do
+   begin
+      Picture.Bitmap.Width := ImageMain.Width;
+      Picture.Bitmap.Height := ImageMain.Height;
+   end;
+   ImageMainPaint(Sender);
+end;
+
+procedure TFormMain.ImageMainDblClick(Sender: TObject);
+begin
+   WhatIsPressed:= PressedDlg;
+   with GraphView do
+      if FVertexUnderMousePointer <> nil then
+      begin
+         ResetSelection;
+         FVertexUnderMousePointer^.FIsSelected:= True;
+         ImageMainPaint(Sender);
+         ActionEditVertexExecute(Sender);
+      end
+      else if FEdgeUnderMousePointer <> nil then
+      begin
+         ResetSelection;
+         FEdgeUnderMousePointer^.FIsSelected:= True;
+         ImageMainPaint(Sender);
+         ActionEditEdgeExecute(Sender);
+      end
+      else
+         ActionCreateVertexExecute(Sender);
+   ImageMainPaint(Sender);
+end;
+
+procedure TFormMain.ImageMainMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+   TheWay: TEdgesModelsPointers;
+   TheDijkstraList: TDijkstraList;
+   i: Integer;
+   Point: TPoint;
+begin
+   { TODO -cMouse: make different actions conneced with shiftstate and mouseButtons }
+   if (WhatIsPressed <> PressedDlg) and (WhatIsPressed <> PressedPopup) then
+   begin
+      MousePosition.SetLocation(X, Y);
+      with GraphView, GraphModel do
+         if FVertexUnderMousePointer <> nil then
+            case Button of
+               TMouseButton.mbLeft:
+               begin
+                  if not (ssCtrl in Shift)  then
+                  begin
+                     ResetSelection;
+                     FVertexUnderMousePointer^.FIsSelected:= True;
+                  end
+                  else
+                     FVertexUnderMousePointer^.FIsSelected:= not FVertexUnderMousePointer^.FIsSelected;
+                  if WhatIsPressed <> PressedPopup then
+                     WhatIsPressed:= PressedSingleVertex
+                  else
+                     WhatIsPressed:= PressedNothing;
+               end;
+               TMouseButton.mbRight:
+               begin
+                  WhatIsPressed:= PressedPopup;
+                  GetCursorPos(Point);
+                  PopupVertexRightClick.Popup(Point.X, Point.Y);
+               end;
+            end
+         else if FEdgeUnderMousePointer <> nil then
+            case Button of
+               TMouseButton.mbLeft:
+                  if not (ssCtrl in Shift) then
+                  begin
+                     ResetSelection;
+                     FEdgeUnderMousePointer^.FIsSelected:= True;
+                  end
+                  else
+                     FEdgeUnderMousePointer^.FIsSelected:= not FEdgeUnderMousePointer^.FIsSelected;
+               TMouseButton.mbRight:
+               begin
+                  WhatIsPressed:= PressedPopup;
+                  GetCursorPos(Point);
+                  PopupEdgeRightClick.Popup(Point.X, Point.Y);
+                  WhatIsPressed:= PressedNothing;
+               end;
+            end
+         else
+         begin
+            GraphView.ResetSelection;
+            WhatIsPressed:= PressedField;
+            case Button of
+               TMouseButton.mbLeft: ;
+               TMouseButton.mbRight:
+               begin
+                  GetCursorPos(Point);
+                  WhatIsPressed:= PressedPopup;
+                  PopupFieldRightClick.Popup(Point.X, Point.Y);
+                  WhatIsPressed:= PressedNothing;
+               end;
+               TMouseButton.mbMiddle: ;
+            end;
+         end;
+      ImageMainPaint(Sender);
+   end
+   else
+      WhatIsPressed:= PressedNothing;
+end;
+
+procedure TFormMain.ImageMainMouseLeave(Sender: TObject);
+begin
+   if WhatIsPressed <> PressedPopup then
+      MousePosition.SetLocation(Random(ImageMain.Width), Random(ImageMain.Height));
+end;
+
+procedure TFormMain.ImageMainMouseMove(Sender: TObject; Shift: TShiftState;
+  X, Y: Integer);
+var
+   i: Integer;
+begin
+   { TODO -cMouseValidation: make a fich with checking of shift and left/middle buttons }
+   if (X > 0) and (X < ImageMain.Width) then
+      MousePosition.X:= X;
+   if (Y > 0) and (Y < ImageMain.Height) then
+      MousePosition.Y:= Y;
+   with GraphView, GraphModel do
+   begin
+      case WhatIsPressed of
+         PressedNothing: begin
+            FVertexUnderMousePointer:= IsPointOnVertex(MousePosition,
+              FormPersonalization.CurrentVisualSettings.Vertex.Radius);
+            FEdgeUnderMousePointer:= IsPointOnEdge(MousePosition);
+            if FVertexUnderMousePointer <> nil then
+            begin
+               FormMain.Cursor:= crSize;
+               with GetVertexModelPointer(FVertexUnderMousePointer^.FIndex)^ do
+                  Hint:= 'Vertex degree: ' + IntToStr(FPNeighborsList^.AmountOfNeighbors);
+               ShowHint:= True;
+            end
+            else if FEdgeUnderMousePointer <> nil then
+            begin
+               FormMain.Cursor:= crHandPoint;
+               with GetEdgeModelPointer(FEdgeUnderMousePointer^.FIndex)^ do
+               begin
+                  if FDirection = DBidirectional then
+                     Hint:= 'Connects: ' + FPFromVertex^.FName + ' and ' + FPToVertex^.FName + #10#13
+                  else
+                     Hint:= 'Start vertex: ' + FPFromVertex^.FName + #10#13 +
+                         'End vertex: ' + FPToVertex^.FName + #10#13;
+                  Hint:= Hint + 'Name: ' + FName + #10#13 +
+                                'Value: ' + IntToStr(FValue) + #10#13 +
+                                'DblCLick to change...';
+               end;
+               ShowHint:= True;
+            end
+            else
+            begin
+               FormMain.Cursor:= crDefault;
+               Hint:= '';
+               ShowHint:= False;
+            end;
+         end;
+         PressedSingleVertex: begin
+            FVertexUnderMousePointer^.FPosition:= MousePosition;
+            if MapMode.Toggled then
+               MapModeUpdateGraph;
+            ImageMainPaint(Sender);
+         end;
+         else
+         begin
+            FormMain.Cursor:= crDefault;
+         end;
+      end;
+   end;
+end;
+
+procedure TFormMain.ImageMainMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+   if WhatIsPressed <> PressedDlg then
+      WhatIsPressed:= PressedNothing;
+end;
+
+procedure TFormMain.ImageMainPaint(Sender: TObject);
+begin
+   if GraphModel <> nil then
+   begin
+      FormIncidenceMatrix.UpdateMatrix(GraphModel);
+      FormAdjacencyMatrix.UpdateMatrix(GraphModel);
+      FormAdjacencyList.UpdateMatrix(GraphModel);
+      GraphView.PaintGraphOnCanvas(ImageMain.Canvas, GraphModel, FormPersonalization.CurrentVisualSettings);
+   end;
+end;
+
+procedure TFormMain.MapModeUpdateGraph;
+var
+   i: Integer;
+begin
+   with GraphModel, GraphView do
+   begin
+      for i := 0 to High(EdgesModelsPointers) do
+      with GetEdgeViewPointer(EdgesModelsPointers[i]^.FIndex)^ do
+         EdgesModelsPointers[i]^.FValue:= Round(
+           FPStartVertexView^.FPosition.Distance(FPEndVertexView^.FPosition) *
+           MapMode.Coefficient);
+   end;
+end;
+
+procedure TFormMain.MMHelpAboutus1Click(Sender: TObject);
+var
+   FormAboutUs: TFormAboutUs;
+begin
+   FormAboutUs:= TFormAboutUs.Create(FormMain);
+   FormAboutUs.ShowModal;
+   FormAboutUs.Destroy;
+end;
+
+procedure TFormMain.MMHelpShortcutsClick(Sender: TObject);
+begin
+   ShowMessage(MsgShortcuts);
+end;
+
+procedure TFormMain.MMMapModeInfoClick(Sender: TObject);
+begin
+   ShowMessage(MsgMapModeInfo);
+end;
+
+end.
+

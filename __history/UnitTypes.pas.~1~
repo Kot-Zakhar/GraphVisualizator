@@ -1,0 +1,17 @@
+unit UnitTypes;
+
+interface
+
+const
+   NameLength = 64;
+
+type
+   TIndex = Word;
+   TAmount = TIndex;
+   TEdgeValue = Integer;
+   TName = String[NameLength];
+   TDirection = (DBidirectional, DUnidirectional);
+
+implementation
+
+end.

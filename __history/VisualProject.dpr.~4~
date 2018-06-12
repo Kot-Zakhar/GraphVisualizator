@@ -1,0 +1,20 @@
+program VisualProject;
+
+uses
+  Vcl.Forms,
+  UnitVisualForm in 'UnitVisualForm.pas' {FrmVisual},
+  UnitTGraphModel in 'UnitTGraphModel.pas',
+  UnitTGraphView in 'UnitTGraphView.pas',
+  UnitTypes in 'UnitTypes.pas',
+  UnitAlgorithms in 'UnitAlgorithms.pas',
+  UnitVertexModelEdit in 'UnitVertexModelEdit.pas' {FormVertexEdit};
+
+{$R *.res}
+
+begin
+  Application.Initialize;
+  Application.MainFormOnTaskbar := True;
+  Application.CreateForm(TFrmVisual, FrmVisual);
+  Application.CreateForm(TFormVertexEdit, FormVertexEdit);
+  Application.Run;
+end.

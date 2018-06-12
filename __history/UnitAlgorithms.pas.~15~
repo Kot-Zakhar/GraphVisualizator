@@ -1,0 +1,151 @@
+unit UnitAlgorithms;
+
+interface
+
+uses
+   UnitTGraphModel, System.Generics.Collections;
+
+type
+   PDijkstraVertex = ^TDijkstraVertex;
+   TDijkstraVertex = record
+      FPVertexModel, FPPrevVertexModel: PVertexModel;
+      FPEdgeModelWithPrevVertex: PEdgeModel;
+      FMinLength: Cardinal;
+      FVisited: Boolean;
+      constructor Create(VertexModelPointer: PVertexModel);
+   end;
+
+   TDijkstraList = class(TList<PDijkstraVertex>)
+   private
+      FPStartVertexModel: PVertexModel;
+   public
+      property StartVertexModelPointer: PVertexModel Read FPStartVertexModel;
+      function GetDijkstraVertex(VertexModelPointer: PVertexModel): PDijkstraVertex;
+      function GetNotVisitedDijkstraVertexWithLeastLength: PDijkstraVertex;
+      function GetWayTo(VertexModelPointer: PVertexModel): TEdgesModelsPointers;
+      function Remove(const Value: PDijkstraVertex): Integer;
+      {constructor Create(StartVertexModelPointer);}
+   end;
+
+
+function DijkstraAlgorithm(Graph: TGraphModel; StartVertexModelPointer: PVertexModel): TDijkstraList;
+
+implementation
+
+function DijkstraAlgorithm(Graph: TGraphModel; StartVertexModelPointer: PVertexModel): TDijkstraList;
+var
+   VMPointers: TVertexesModelsPointers;
+   CurrentDVPointer: PDijkstraVertex;
+   CurrentNsVsPointers: TVertexesModelsPointers;
+   i: Integer;
+begin
+   Result:= TDijkstraList.Create;
+   VMPointers:= Graph.GetVertexesModelsPointers;
+   for i := 0 to High(VMPointers) do
+   begin
+      New(CurrentDVPointer);
+      Result.Add(CurrentDVPointer);
+      CurrentDVPointer^.Create(VMPointers[i]);
+   end;
+
+   CurrentDVPointer:= Result.GetDijkstraVertex(StartVertexModelPointer);
+   CurrentDVPointer^.FMinLength:= 0;
+
+   repeat
+      with CurrentDVPointer^ do
+      begin
+         FVisited:= True;
+         CurrentNsVsPointers:= FPVertexModel^.FPNeighborsList^.GetNeighborsPointers;
+      end;
+      for i := 0 to High(CurrentNsVsPointers) do
+         with Result.GetDijkstraVertex(CurrentNsVsPointers[i])^ do
+            if FMinLength > CurrentDVPointer^.FMinLength +
+                            CurrentDVPointer^.FPVertexModel^.FPNeighborsList^.
+                            GetSmallestEdgePointerWith(CurrentNsVsPointers[i])^.FValue then
+            begin
+               FMinLength:= CurrentDVPointer^.FMinLength +
+                  CurrentDVPointer^.FPVertexModel^.FPNeighborsList^.
+                  GetSmallestEdgePointerWith(CurrentNsVsPointers[i])^.FValue;
+               FPEdgeModelWithPrevVertex:= CurrentDVPointer^.FPVertexModel^.
+                  FPNeighborsList^.GetSmallestEdgePointerWith(CurrentNsVsPointers[i]);
+               FPPrevVertexModel:= CurrentDVPointer^.FPVertexModel;
+            end;
+      CurrentDVPointer:= Result.GetNotVisitedDijkstraVertexWithLeastLength;
+   until CurrentDVPointer = nil;
+end;
+
+{ TDijkstraVertex }
+
+constructor TDijkstraVertex.Create(VertexModelPointer: PVertexModel);
+begin
+   FPvertexModel:= VertexModelPointer;
+   FPPrevVertexModel:= nil;
+   FPEdgeModelWithPrevVertex:= nil;
+   FMinLength:= High(Cardinal);
+   FVisited:= False;
+end;
+
+
+{ TDijkstraList }
+            {
+constructor TDijkstraList.Create(StartVertexModelPointer);
+begin
+   FPStartVertexModel:= StartVertexModelPointer;
+   inherited;
+end;         }
+
+function TDijkstraList.GetDijkstraVertex(
+  VertexModelPointer: PVertexModel): PDijkstraVertex;
+var
+   i: Integer;
+begin
+   Result:= nil;
+   for i := 0 to Count - 1 do
+      if Items[i].FPVertexModel = VertexModelPointer then
+      begin
+         Result:= Items[i];
+         break;
+      end;
+end;
+
+function TDijkstraList.GetNotVisitedDijkstraVertexWithLeastLength: PDijkstraVertex;
+var
+   i, CurrentIndex: Integer;
+   CurrentMinLength: Cardinal;
+begin
+   Result:= nil;
+   CurrentIndex:= -1;
+   CurrentMinLength:= High(Cardinal);
+   for i := 0 to Count - 1 do
+      if (not Items[i]^.FVisited) and (Items[i]^.FMinLength < CurrentMinLength) then
+      begin
+         CurrentMinLength:= Items[i]^.FMinLength;
+         CurrentIndex:= i;
+      end;
+   if CurrentIndex <> -1 then
+      Result:= Items[CurrentIndex];
+end;
+
+function TDijkstraList.GetWayTo(
+  VertexModelPointer: PVertexModel): TEdgesModelsPointers;
+var
+   i: Integer;
+   CurrentDVPointer: PDijkstraVertex;
+begin
+   SetLength(Result, 0);
+   CurrentDVPointer:= GetDijkstraVertex(VertexModelPointer);
+   while CurrentDVPointer^.FPPrevVertexModel <> nil do
+   begin
+      SetLength(Result, Length(Result) + 1);
+      Result[High(Result)]:= CurrentDVPointer^.FPEdgeModelWithPrevVertex;
+      CurrentDVPointer:= GetDijkstraVertex(CurrentDVPointer^.FPVertexModel)
+   end;
+end;
+
+function TDijkstraList.Remove(const Value: PDijkstraVertex): Integer;
+begin
+   Result:= inherited;
+   Dispose(Value);
+end;
+
+end.

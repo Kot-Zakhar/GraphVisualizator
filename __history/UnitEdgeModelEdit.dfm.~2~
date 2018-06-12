@@ -1,0 +1,37 @@
+object FormEdgeEdit: TFormEdgeEdit
+  Left = 0
+  Top = 0
+  BorderIcons = []
+  BorderStyle = bsSizeToolWin
+  Caption = 'Edit Edge'
+  ClientHeight = 254
+  ClientWidth = 347
+  Color = clBtnFace
+  Font.Charset = DEFAULT_CHARSET
+  Font.Color = clWindowText
+  Font.Height = -11
+  Font.Name = 'Tahoma'
+  Font.Style = []
+  OldCreateOrder = False
+  PixelsPerInch = 96
+  TextHeight = 13
+  object ButtonCancel: TBitBtn
+    Left = 216
+    Top = 192
+    Width = 75
+    Height = 25
+    Kind = bkCancel
+    NumGlyphs = 2
+    TabOrder = 0
+  end
+  object ButtonOk: TBitBtn
+    Left = 48
+    Top = 192
+    Width = 75
+    Height = 25
+    Kind = bkOK
+    NumGlyphs = 2
+    TabOrder = 1
+    OnClick = ButtonOkClick
+  end
+end

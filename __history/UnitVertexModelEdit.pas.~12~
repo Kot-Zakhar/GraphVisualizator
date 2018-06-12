@@ -1,0 +1,71 @@
+unit UnitVertexModelEdit;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Buttons, UnitTGraphModel, UnitTypes,
+  UnitSourceStrings;
+
+type
+  TFormVertexEdit = class(TForm)
+  private
+    VMPointer: PVertexModel;
+  published
+    ButtonOk: TBitBtn;
+    ButtonCancel: TBitBtn;
+    EditName: TEdit;
+    LabelName: TLabel;
+    property VertexPointer: PVertexModel read VMPointer;
+    constructor Create(VertexModelPointer: PVertexModel; AOwner: TComponent);
+    destructor Destroy(NeedToDestroyVertex: Boolean);
+    procedure EditNameKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+    procedure ButtonOkClick(Sender: TObject);
+  end;
+
+
+implementation
+
+{$R *.dfm}
+
+{ TFormVertexEdit }
+
+procedure TFormVertexEdit.ButtonOkClick(Sender: TObject);
+begin
+   if EditName.Text <> '' then
+      VMPointer^.FName:= EditName.Text
+   else
+      case MessageDlg(MsgEmptyFields + #10#13 + MsgWontSave, mtWarning, mbOKCancel, 0, mbOK) of
+         mrOk: ModalResult:= mrCancel;
+         mrCancel: ModalResult:= mrNone;
+      end
+end;
+
+constructor TFormVertexEdit.Create(VertexModelPointer: PVertexModel; AOwner: TComponent);
+begin
+   inherited Create(AOwner);
+   VMPointer:= VertexModelPointer;
+   EditName.Text:= VertexModelPointer^.FName;
+end;
+
+destructor TFormVertexEdit.Destroy(NeedToDestroyVertex: Boolean);
+begin
+   if NeedToDestroyVertex then
+      Dispose(VMPointer);
+   inherited Destroy;
+end;
+
+procedure TFormVertexEdit.EditNameKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+   Line: String;
+begin
+   Line:= EditName.Text;
+   if Length(Line) > NameLength then
+   begin
+      SetLength(Line, NameLength);
+      EditName.Text:= Line;
+   end;
+end;
+
+end.

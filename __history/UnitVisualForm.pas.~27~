@@ -1,0 +1,272 @@
+unit UnitVisualForm;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, UnitTGraphModel, UnitTGraphView, UnitTypes,
+  Math, System.Actions, Vcl.ActnList, Vcl.PlatformDefaultStyleActnCtrls,
+  Vcl.ActnPopup, Vcl.Menus;
+
+type
+  TFrmVisual = class(TForm)
+    PaintBoxMain: TPaintBox;
+    procedure FormCreate(Sender: TObject);
+    procedure PaintBoxMainMouseMove(Sender: TObject; Shift: TShiftState; X,
+      Y: Integer);
+    procedure PaintBoxMainDblClick(Sender: TObject);
+    procedure PaintBoxMainPaint(Sender: TObject);
+    procedure PaintBoxMainClick(Sender: TObject);
+    procedure PaintBoxMainMouseDown(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+    procedure PaintBoxMainMouseUp(Sender: TObject; Button: TMouseButton;
+      Shift: TShiftState; X, Y: Integer);
+  end;
+
+var
+  FrmVisual: TFrmVisual;
+
+implementation
+
+{$R *.dfm}
+
+type
+   TWhatIsPressed = (PressedNothing, PressedField, PressedSingleVertex, PressedSingleVertexToCreateEdge,
+      PressedSeveralVertexes, PressedSingleEdge, PressedSeveralEdges,
+      PressedSomeText, PressedMultiselect, PressedDlg);
+   TMouseButtonPressed = (MBPNone, MBPLeft, MBPRight, MBPCenter);
+
+var
+  GraphModel: TGraphModel;
+  GraphView: TGraphView;
+  MousePosition: TPoint;
+  MouseButtonPressed: TMouseButtonPressed;
+  WhatIsPressed: TWhatIsPressed;
+
+{ TFrmVisual }
+
+procedure TFrmVisual.FormCreate(Sender: TObject);
+begin
+   GraphModel:= TGraphModel.Create;
+   GraphView:= TGraphView.Create;
+   MouseButtonPressed:= MBPNone;
+   WhatIsPressed:= PressedNothing;
+end;
+
+procedure TFrmVisual.PaintBoxMainClick(Sender: TObject);
+begin
+{
+   with GraphView do
+      if FVertexUnderMousePointer <> nil then
+      begin
+         WhatIsPressed:= PressedSingleVertex;
+         //ShowMessage('Vertex is clicked');
+      end
+      else if FEdgeUnderMousePointer <> nil then
+      begin
+         WhatIsPressed:= PressedSingleVertex
+      end
+      else
+      begin
+         WhatIsPressed:= PressedField;
+//         ShowMessage('Field is clicked');
+
+      end;     }
+{
+   with GraphView do
+      if (FEdgeUnderMousePointer = nil) and (FVertexUnderMousePointer = nil) then
+      begin
+//         ShowMessage('It will move canvas, or start multiselect based on selected.');
+         ResetSelection;
+      end
+      else
+         FVertexUnderMousePointer^.FIsSelected:= True;
+ }
+end;
+
+procedure TFrmVisual.PaintBoxMainDblClick(Sender: TObject);
+begin
+   with GraphView do
+      if FVertexUnderMousePointer <> nil then
+      begin
+         FVertexUnderMousePointer^.FIsSelected:= True;
+         WhatIsPressed:= PressedDlg;
+         MessageDLG('Dlg vertexEdit', mtWarning, mbYesNo, 0);
+         FVertexUnderMousePointer^.FIsSelected:= False;
+         { TODO -cEdit: DlgVertexEdit }
+      end
+      else if FEdgeUnderMousePointer <> nil then
+      begin
+         FEdgeUnderMousePointer^.FIsSelected:= True;
+         ShowMessage('Dlg EdgeEdit');
+         FEdgeUnderMousePointer^.FIsSelected:= False;
+         { TODO -cEdit: DlgEdgeEdit }
+      end
+      else
+      begin
+         with GraphModel.CreateNewVertexModel^ do
+            CreateNewVertexView(FIndex, MousePosition,
+               TPoint.Create(10, 10), FName, True);
+      end;
+   PaintBoxMainPaint(Sender);
+end;
+
+procedure TFrmVisual.PaintBoxMainMouseDown(Sender: TObject;
+  Button: TMouseButton; Shift: TShiftState; X, Y: Integer);
+var
+   SelectedVVPointers: TVertexesViewPointers;
+begin
+   MouseButtonPressed:= TMouseButtonPressed(Byte(Button) + 1);
+   { TODO -cMouse: make different actions conneced with shiftstate and mouseButtons }
+   with GraphView, GraphModel do
+      if FVertexUnderMousePointer <> nil then
+      begin
+         SelectedVVPointers:= GetSelectedVertexesViewPointers;
+         case Button of
+            TMouseButton.mbLeft:
+            begin
+               GraphView.ResetSelection;
+               FVertexUnderMousePointer^.FIsSelected:= True;
+               WhatIsPressed:= PressedSingleVertex;
+               {if (Length(SelectedVVPointers) <> 0) then
+               begin
+                  WhatIsPressed:= PressedMultiselect;
+                  // action on multisellect
+               end;  }
+            end;
+            TMouseButton.mbRight:
+               if Length(SelectedVVPointers) = 0 then
+               begin
+                  showMessage('popup, wich shows available procedures with single vertex');
+                  WhatIsPressed:= PressedNothing;
+                  FVertexUnderMousePointer^.FIsSelected:= True;
+               end
+               else if Length(SelectedVVPointers) = 1 then
+               begin
+                  GraphView.ResetSelection;
+                  WhatIsPressed:= PressedSingleVertexToCreateEdge;
+                  // ShowMessage('popup shows available edge''s type to create');
+                  with CreateNewEdgeModel(GetVertexModelPointer(SelectedVVPointers[0]^.FIndex),
+                                     GetVertexModelPointer(FVertexUnderMousePointer^.FIndex),
+                                     DBidirectional)^ do
+                     CreateNewEdgeView(FIndex, SelectedVVPointers[0]^.FIndex,
+                                       FVertexUnderMousePointer^.FIndex,
+                                       FDirection, FName, True);
+               end;
+            TMouseButton.mbMiddle: ;
+         end;
+         // ShowMessage('Vertex is clicked');
+      end
+      else if FEdgeUnderMousePointer <> nil then
+      begin
+         WhatIsPressed:= PressedSingleVertex;
+         FEdgeUnderMousePointer^.FIsSelected:= True;
+      end
+      else
+      begin
+         GraphView.ResetSelection;
+         WhatIsPressed:= PressedField;
+//         ShowMessage('Field is clicked');
+      end;
+      PaintBoxMainPaint(Sender);
+end;
+
+procedure TFrmVisual.PaintBoxMainMouseMove(Sender: TObject; Shift: TShiftState;
+  X, Y: Integer);
+var
+   i: Integer;
+begin
+   { TODO -cMouseValidation: make a fich with checking of shift and left/middle buttons }
+   MousePosition.SetLocation(X, Y);
+   with GraphView do
+   begin
+      case WhatIsPressed of
+         PressedNothing: begin
+            FVertexUnderMousePointer:= IsPointOnVertex(MousePosition);
+            FEdgeUnderMousePointer:= IsPointOnEdge(MousePosition);
+            if FVertexUnderMousePointer <> nil then
+               FrmVisual.Cursor:= crSize
+            else if FEdgeUnderMousePointer <> nil then
+               FrmVisual.Cursor:= crHandPoint
+            else
+               FrmVisual.Cursor:= crDefault;
+         end;
+         PressedSingleVertex: begin
+            FVertexUnderMousePointer^.FPosition:= MousePosition;
+            PaintBoxMainPaint(Sender);
+         end;
+      end;
+   end;
+end;
+
+procedure TFrmVisual.PaintBoxMainMouseUp(Sender: TObject; Button: TMouseButton;
+  Shift: TShiftState; X, Y: Integer);
+begin
+   MouseButtonPressed:= MBPNone;
+   WhatIsPressed:= PressedNothing;
+end;
+
+procedure TFrmVisual.PaintBoxMainPaint(Sender: TObject);
+var
+   VVPointers: TVertexesViewPointers;
+   EVPointers: TEdgesViewPointers;
+   i: Integer;
+   Point1, Point2: TPoint;
+begin
+   //if GraphView.FNeedToRedraw then
+   begin
+      with PaintBoxMain.Canvas do
+      begin
+         Brush.Color:= clWhite;
+         FillRect(ClientRect);
+
+         EVPointers:= GraphView.GetEdgesViewPointers;
+         for i := 0 to High(EVPointers) do
+            with EVPointers[i]^ do
+            begin
+               if FIsSelected then
+               begin
+                  Pen.Color:= clRed;
+                  Brush.Color:= clRed;
+               end
+               else
+               begin
+                  Pen.Color:= clBLue;
+                  Brush.Color:= clBlue;
+               end;
+               Point1:= TPoint.Create(FPStartVertexView^.FPosition);
+               Point2:= TPoint.Create(FPEndVertexView^.FPosition);
+               Pen.Width:= 2;
+               PenPos:= TPoint.Create(Point1);
+               LineTo(Point2.X, Point2.Y);
+               Pen.Color:= clWhite;
+               TextOut((Point1.X + Point2.X) div 2,
+                       (Point1.Y + Point2.Y) div 2, FName);
+            end;
+
+         Pen.Color:= clBlack;
+         VVPointers:= GraphView.GetVertexesViewPointers;
+         for i := 0 to High(VVPointers) do
+            with VVPointers[i]^ do
+            begin
+               Point1:= FPosition.Subtract(FHalfOfSize);
+               Point2:= FPosition.Add(FHalfOfSize);
+               if FIsSelected then
+                  Brush.Color:= clRed
+               else
+                  Brush.Color:= clBlue;
+               Pen.Color:= clBlack;
+               Pen.Width:= 1;
+               Ellipse(Point1.X, Point1.y, Point2.X, Point2.Y);
+               //Point1:= Point1.Subtract(TPoint.Create(0, 15)); // 5 - text height
+               Point1:= FPosition.Subtract(TPoint.Create(3, 6));
+               Font.Color:= clWhite;
+               TextOut(Point1.X, Point1.Y, FName);
+            end;
+      end;
+      GraphView.FNeedToRedraw:= False;
+   end;   { TODO -cIMPORTANT: stoped here }
+
+end;
+
+end.

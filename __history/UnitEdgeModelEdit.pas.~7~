@@ -1,0 +1,93 @@
+unit UnitEdgeModelEdit;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.StdCtrls, Vcl.Buttons, UnitTGraphModel, UnitTypes, UnitSourceStrings,
+  Vcl.ExtCtrls;
+
+type
+   TFormEdgeEdit = class(TForm)
+      ButtonCancel: TBitBtn;
+      ButtonOk: TBitBtn;
+      LabelName: TLabel;
+      EditName: TEdit;
+      LabelValue: TLabel;
+      EditValue: TEdit;
+      RadioGroupDirection: TRadioGroup;
+    LabeledEditVertex1: TLabeledEdit;
+    LabeledEditVertex2: TLabeledEdit;
+    BitBtn1: TBitBtn;
+      constructor Create(EdgeModelPointer: PEdgeModel; AOwner: TComponent);
+      procedure EditKeyUp(Sender: TObject; var Key: Word; Shift: TShiftState);
+      procedure EditValueKeyUp(Sender: TObject; var Key: Word;
+      Shift: TShiftState);
+    procedure ButtonOkClick(Sender: TObject);
+   private
+      EMPointer: PEdgeModel;
+   end;
+
+
+implementation
+
+{$R *.dfm}
+
+procedure TFormEdgeEdit.ButtonOkClick(Sender: TObject);
+begin
+   if (EditValue.Text <> '') then
+   begin
+      EMPointer^.FName:= EditName.Text;
+      EmPointer^.FValue:= StrToInt(EditValue.Text);
+      { TODO -cEdgeDirectionEdit: make influence from changin field "Direction" }
+   end
+   else
+      case MessageDlg(MsgEmptyFields + #10#13 + MsgWontSave, mtWarning, mbOKCancel, 0, mbOK) of
+         mrOk: ModalResult:= mrCancel;
+         mrCancel: ModalResult:= mrNone;
+      end
+end;
+
+constructor TFormEdgeEdit.Create(EdgeModelPointer: PEdgeModel; AOwner: TComponent);
+begin
+   Inherited Create(AOwner);
+   EMPointer:= EdgeModelPointer;
+   EditName.Text:= EdgeModelPointer^.FName;
+   EditValue.Text:= IntToStr(EdgeModelPointer^.FValue);
+   RadioGroupDirection.ItemIndex:= Integer(EdgeModelPointer^.FDirection);
+end;
+
+procedure TFormEdgeEdit.EditKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+   Line: String;
+begin
+   with (Sender as TEdit) do
+   begin
+      Line:= Text;
+      if Length(Line) > NameLength then
+      begin
+         SetLength(Line, NameLength);
+         Text:= Line;
+      end;
+   end;
+end;
+
+procedure TFormEdgeEdit.EditValueKeyUp(Sender: TObject; var Key: Word;
+  Shift: TShiftState);
+var
+   Line: String;
+   i: Integer;
+begin
+   with (Sender as TEdit) do
+   begin
+      Line:= Text;
+      for i := 0 to Length(Line) - 1 do
+         if not (Line[i] in ['0'..'9']) then
+            Delete(Line, i, 1);
+      if Line <> Text then
+         Text:= Line;
+   end;              
+end;
+
+end.

@@ -1,0 +1,210 @@
+unit UnitPersonalization;
+
+interface
+
+uses
+  Winapi.Windows, Winapi.Messages, System.SysUtils, System.Variants, System.Classes, Vcl.Graphics,
+  Vcl.Controls, Vcl.Forms, Vcl.Dialogs, Vcl.ExtCtrls, Vcl.StdCtrls,
+  UnitTypeAndConst, UnitTGraphView, UnitTGraphModel;
+
+type
+   TFormPersonalization = class(TForm)
+      ColorDialog: TColorDialog;
+      PanelVertexSettings: TPanel;
+      PaintBoxCurrentSettings: TPaintBox;
+      PaintBoxVertexActiveFill: TPaintBox;
+      PaintBoxVertexActiveLine: TPaintBox;
+      PaintBoxVertexCommonFill: TPaintBox;
+      PaintBoxVertexCommonLine: TPaintBox;
+      LabelVertexHeader: TLabel;
+      FontDialog: TFontDialog;
+      PanelSubmit: TPanel;
+      LabelVertexActive: TLabel;
+      LabelVertexCommon: TLabel;
+      LabelVertexFillColor: TLabel;
+      LabelVertexLineColor: TLabel;
+      ScrollBarVertexActiveLineWidth: TScrollBar;
+      LabelVertesLineWidth: TLabel;
+      ScrollBarVertexCommonLineWidth: TScrollBar;
+      ButtonVertexActiveFont: TButton;
+      ButtonVertexCommonFont: TButton;
+      LabelVertexRadius: TLabel;
+      ScrollBarVertexRadius: TScrollBar;
+      PanelEdgeSettings: TPanel;
+      LabelArrowHeader: TLabel;
+      LabelEdgeActive: TLabel;
+      PaintBoxEdgeActiveLine: TPaintBox;
+      LabelEdgeCommon: TLabel;
+      PaintBoxEdgeCommonLine: TPaintBox;
+      LabelEdgeLineColor: TLabel;
+      LabelEdgeLineWidth: TLabel;
+      ScrollBarEdgeActiveLineWidth: TScrollBar;
+      ScrollBarEdgeCommonLineWidth: TScrollBar;
+      ButtonEdgeActiveFont: TButton;
+      ButtonEdgeCommonFont: TButton;
+      LabelArrowSideLength: TLabel;
+      ScrollBarArrowLineLength: TScrollBar;
+      ScrollBarArrowCenterLength: TScrollBar;
+      ScrollBarArrowAngle: TScrollBar;
+      LabelEdgeHeader: TLabel;
+      LabelArrowMiddleLength: TLabel;
+      Label1: TLabel;
+      function ShowModal: Integer; override;
+      constructor Create(AOwner: TComponent); override;
+      procedure PaintBoxCurrentSettingsPaint(Sender: TObject);
+      procedure FormCreate(Sender: TObject);
+      procedure FormClose(Sender: TObject; var Action: TCloseAction);
+      procedure ScrollBarArrowLineLengthScroll(Sender: TObject; ScrollCode: TScrollCode;
+         var ScrollPos: Integer);
+      procedure ScrollBarArrowCenterLengthScroll(Sender: TObject; ScrollCode: TScrollCode;
+         var ScrollPos: Integer);
+      procedure ScrollBarArrowAngleScroll(Sender: TObject; ScrollCode: TScrollCode;
+         var ScrollPos: Integer);
+      procedure SetControlsWithVS(Sender: TObject);
+   public
+         CurrentVisualSettings: TVisualSettings;
+   end;
+
+implementation
+
+{$R *.dfm}
+
+var
+   VisualSettingsToChange: TVisualSettings;
+   GraphModelExample: TGraphModel;
+   GraphViewExample: TGraphView;
+
+procedure TFormPersonalization.ScrollBarArrowLineLengthScroll(Sender: TObject;
+  ScrollCode: TScrollCode; var ScrollPos: Integer);
+begin
+   VisualSettingsToChange.Edge.ArrowSettings.LineLength:= ScrollPos;
+   PaintBoxCurrentSettings.OnPaint(Sender);
+end;
+
+procedure TFormPersonalization.ScrollBarArrowCenterLengthScroll(Sender: TObject;
+  ScrollCode: TScrollCode; var ScrollPos: Integer);
+begin
+   VisualSettingsToChange.Edge.ArrowSettings.CenterLength:= ScrollPos;
+   PaintBoxCurrentSettings.OnPaint(Sender);
+end;
+
+procedure TFormPersonalization.ScrollBarArrowAngleScroll(Sender: TObject;
+  ScrollCode: TScrollCode; var ScrollPos: Integer);
+begin
+   VisualSettingsToChange.Edge.ArrowSettings.HalfAngle:= ScrollPos / 100;
+   PaintBoxCurrentSettings.OnPaint(Sender);
+end;
+
+function TFormPersonalization.ShowModal: Integer;
+begin
+   VisualSettingsToChange:= CurrentVisualSettings;
+   Result:= inherited;
+   if Result = mrOK then
+      CurrentVisualSettings:= VisualSettingsToChange;
+end;
+
+procedure TFormPersonalization.SetControlsWithVS(Sender: TObject);
+begin
+   // Veretx Settings
+   with VisualSettingsToChange.Vertex do
+   begin
+      with PaintBoxVertexActiveFill.Canvas do
+      begin
+         Brush.Color:= ActiveState.FillColor;
+         FillRect(ClientRect);
+      end;
+      with PaintBoxVertexCommonFill.Canvas do
+      begin
+         Brush.Color:= CommonState.FillColor;
+         FillRect(ClientRect);
+      end;
+      with PaintBoxVertexActiveLine.Canvas do
+      begin
+         Brush.Color:= ActiveState.Line.Color;
+         FillRect(ClientRect);
+      end;
+      with PaintBoxVertexCommonLine.Canvas do
+      begin
+         Brush.Color:= CommonState.Line.Color;
+         FillRect(ClientRect);
+      end;
+      ScrollBarVertexActiveLineWidth.Position:= ActiveState.Line.Width;
+      ScrollBarVertexCommonLineWidth.Position:= CommonState.Line.Width;
+      ScrollBarVertexRadius.Position:= Radius;
+   end;
+   // Edge Settings
+   with VisualSettingsToChange.Edge do
+   begin
+      with PaintBoxEdgeActiveLine.Canvas do
+      begin
+         Brush.Color:= ActiveState.Color;
+         FillRect(ClientRect);
+      end;
+      with PaintBoxEdgeCommonLine.Canvas do
+      begin
+         Brush.Color:= CommonState.Color;
+         FillRect(ClientRect);
+      end;
+      ScrollBarEdgeActiveLineWidth.Position:= ActiveState.Width;
+      ScrollBarEdgeCommonLineWidth.Position:= CommonState.Width;
+      ScrollBarArrowLineLength.Position:= ArrowSettings.LineLength;
+      ScrollBarArrowCenterLength.Position:= ArrowSettings.CenterLength;
+      ScrollBarArrowAngle.Position:= Round(ArrowSettings.HalfAngle * 100);
+   end;
+end;
+
+constructor TFormPersonalization.Create(AOwner: TComponent);
+begin
+   inherited;
+   CurrentVisualSettings:= DefaultVisualSettings;
+   VisualSettingsToChange:= CurrentVisualSettings;
+   SetControlsWithVS(AOwner);
+end;
+
+procedure TFormPersonalization.FormClose(Sender: TObject;
+  var Action: TCloseAction);
+begin
+   FreeAndNil(GraphModelExample);
+   FreeAndNil(GraphViewExample);
+end;
+
+procedure TFormPersonalization.FormCreate(Sender: TObject);
+var
+   VertexesModelsPointers: TVertexesModelsPointers;
+   X, Y, i: Integer;
+begin
+   X:= PaintBoxCurrentSettings.Width div 3;
+   Y:= PaintBoxCurrentSettings.Height div 3;
+   GraphModelExample:= TGraphModel.Create(True, False);
+   GraphViewExample:= TGraphView.Create;
+   with GraphModelExample, GraphViewExample do
+   begin
+      with CreateNewVertexModel^ do
+         CreateNewVertexView(FIndex,
+           TPoint.Create(X, Y), True);
+      with CreateNewVertexModel^ do
+         CreateNewVertexView(FIndex,
+           TPoint.Create(X, Y * 2), True);
+      with CreateNewEdgeModel(GetVertexModelPointer(0),
+        GetVertexModelPointer(1), DUnidirectional)^ do
+            CreateNewEdgeView(FIndex, 0, 1, True);
+      with CreateNewVertexModel^ do
+         CreateNewVertexView(FIndex,
+           TPoint.Create(X * 2, Y * 2), False);
+      with CreateNewVertexModel^ do
+         CreateNewVertexView(FIndex,
+           TPoint.Create(X * 2, Y), False);
+      with CreateNewEdgeModel(GetVertexModelPointer(2),
+        GetVertexModelPointer(3), DBidirectional)^ do
+            CreateNewEdgeView(FIndex, 2, 3, False);
+   end;
+   SetControlsWithVS(Sender);
+end;
+
+procedure TFormPersonalization.PaintBoxCurrentSettingsPaint(Sender: TObject);
+begin
+   GraphViewExample.PaintGraphOnCanvas(PaintBoxCurrentSettings.Canvas,
+     GraphModelExample, VisualSettingsToChange);
+end;
+
+end.

@@ -1,0 +1,573 @@
+unit UnitTGraphModel;
+
+interface
+
+uses System.SysUtils, UnitTypes;
+
+type
+//----------------------- declarations of pointers' types --------------------//
+   PNeighborVertex = ^TNeighborVertex;
+   PNeighborsList = ^TNeighborsList;
+   PEdgeModel = ^TEdgeModel;
+   PVertexModel = ^TVertexModel;
+   PGraphModelVertex = ^TGraphModelVertex;
+
+//------------------------------ class' headers ------------------------------//
+   TNeighborsList = class;
+   TGraphModel = class;
+
+//------------------------------- other types --------------------------------//
+   TVertexesModelsPointers = array of PVertexModel;
+   TEdgesModelsPointers = array of PEdgeModel;
+
+//---------------------------- records and classes ---------------------------//
+   TEdgeModel = record
+         FValue: TEdgeValue;
+         FIndex: TIndex;
+         FName: TName;
+         FDirection: TDirection;
+         FPFromVertex, FPToVertex: PVertexModel;
+         { TODO -cEdge: should TEdgeModel contain from and to vertex's pointers? }
+      end;
+
+
+   TNeighborVertex = record
+      public
+         FPNextNeighbor: PNeighborVertex;
+         FPVertexModel: PVertexModel;
+         FPEdgeModel: PEdgeModel;
+      end;
+   TNeighborsList = class
+      private
+         FPNLHead,
+         FPNLTail: PNeighborVertex;
+         FAmountOfNeighbors: TAmount;
+         function GetNeighborVertexPointer(VertexIndex: Word): PNeighborVertex;
+      public
+         constructor Create;
+         destructor Destroy; override;
+         property AmountOfNeighbors: TAmount read FAmountOfNeighbors;
+         procedure CreateNewNeighbor(VertexModelPointer: PVertexModel; var EdgeModelPointer: PEdgeModel);
+         procedure RemoveNeighbor(VertexModelPointer: PVertexModel); // Removes only neighbor-record, EdgeModel still exists
+//         procedure RemoveEdgeModel(EdgeModelPointer: PEdgeModel); // Removes Neighbor-records from both From and To vertexes' neighbors lists, deletes edge
+         function GetVertexPointerOfNeighbor(VertexIndex: Word): PVertexModel;
+         function GetEdgeModelPointerWith(VertexModelPointer: PVertexModel): PEdgeModel;
+//         function GetEdgesPointersWith(VertexModelPointer: PVertexModel): TEdgesModelsPointers;
+//         function GetSmallestEdgePointerWith(VertexModelPointer: PVertexModel): PEdgeModel;
+         function GetEdgesModelsPointers: TEdgesModelsPointers;
+         function GetNeighborsPointers: TVertexesModelsPointers;
+      end;
+
+   TVertexModel = record
+         FIndex: TIndex;
+         FPNeighborsList: PNeighborsList;
+         FName: TName;
+   end;
+
+   TGraphModelVertex = record
+      public
+         FPNextGraphModelVertex: PGraphModelVertex;
+         FPVertexModel: PVertexModel;
+      end;
+   TGraphModel = class (TObject)
+      private
+         FOriented, FWeighted: Boolean;
+         FPGraphModelHead, FPGraphModelTail: PGraphModelVertex;
+         FAmountOfVertexes: TAmount;
+         FAmountOfEdges: TAmount;
+         //FVertexesModelsPointers: TVertexesModelsPointers;
+         FEdgesModelsPointers: TEdgesModelsPointers;
+         //procedure SyncAllVertexes;
+         function GetLeastFreeVertexIndex: TIndex;
+         function GetLeastFreeEdgeIndex: TIndex;
+         procedure SetOriented(Value: Boolean);
+         procedure SetWeighted(Value: Boolean);
+      public
+         property Oriented: Boolean read FOriented write SetOriented;
+         property Weighted: Boolean read FWeighted write SetWeighted;
+         property AmountOfVertexes: TAmount read FAmountOfVertexes;
+         property EdgesModelsPointers: TEdgesModelsPointers read FEdgesModelsPointers;
+         { Creating }
+         constructor Create(IsOriented: Boolean = False; IsWeighted: Boolean = False);
+         function CreateNewVertexModel: PVertexModel;    {should monitor indexes}
+         function CreateNewEdgeModel(FromVertexModelPointer, ToVertexModelPointer: PVertexModel
+            {Direction: TDirection}): PEdgeModel;
+         { Getting }
+         function GetVertexModelPointer(VertexIndex: TIndex): PVertexModel; overload; {nil if not found}
+         function GetVertexModelPointer(VertexName: TName): PVertexModel; overload;
+         function GetVertexesModelsPointers: TVertexesModelsPointers;
+//         function GetEdgeModelPointer(VertexIndex1, VertexIndex2: TIndex): PEdgeModel; {need to redo for TIndex[] }
+         function GetEdgeModelPointer(EdgeIndex: TIndex): PEdgeModel;
+//         function GetEdgesModelsPointers(VertexIndex1, VertexIndex2: TIndex): TEdgesModelsPointers; overload;
+//         function GetEdgesModelsPointers: TEdgesModelsPointers; // overload;
+         { Removing }
+         destructor Destroy; override;
+            { Vertex }
+         procedure RemoveVertexModel(VertexModelPointer: PVertexModel);
+            { Edge }
+         procedure RemoveEdgeModel(EdgeModelPointer: PEdgeModel);
+//         procedure RemoveEdgesModels(VertexIndex: TIndex);
+      end;
+
+
+implementation
+
+{ TNeighborsList }
+
+constructor TNeighborsList.Create;
+begin
+   inherited;
+   FAmountOfNeighbors:= 0;
+   New(FPNLHead);
+   FPNLHead^.FPNextNeighbor:= nil;
+   FPNLHead^.FPVertexModel:= nil;
+   FPNLHead^.FPEdgeModel:= nil;
+   FPNLTail:= FPNLHead;
+end;
+
+procedure TNeighborsList.CreateNewNeighbor(VertexModelPointer: PVertexModel; var EdgeModelPointer: PEdgeModel);
+begin
+   Inc(FAmountOfNeighbors);
+   New(FPNLTail^.FPNextNeighbor);
+   FPNLTail:= FPNLTail^.FPNextNeighbor;
+   FPNLTail^.FPNextNeighbor:= nil;
+   FPNLTail^.FPVertexModel:= VertexModelPointer;
+   if EdgeModelPointer = nil then
+      New(EdgeModelPointer);
+   FPNLTail^.FPEdgeModel:= EdgeModelPointer;
+end;
+
+destructor TNeighborsList.Destroy;
+var
+   NeighborToDeletePointer: PNeighborVertex;
+begin
+
+   FPNLTail:= FPNLHead^.FPNextNeighbor;
+   while FPNLTail <> nil do
+   begin
+      NeighborToDeletePointer:= FPNLTail;
+      FPNLTail:= FPNLTail^.FPNextNeighbor;
+      Dispose(NeighborToDeletePointer);
+   end;
+   Dispose(FPNLHead);
+   inherited;
+end;
+
+function TNeighborsList.GetEdgeModelPointerWith(
+  VertexModelPointer: PVertexModel): PEdgeModel;
+var
+   CurrentNVPointer: PNeighborVertex;
+begin
+   CurrentNVPointer:= FPNLHead^.FPNextNeighbor;
+   while (CurrentNVPointer <> nil) and (CurrentNVPointer^.FPVertexModel <> VertexModelPointer) do
+      CurrentNVPointer:= CurrentNVPointer^.FPNextNeighbor;
+   if CurrentNVPointer <> nil then
+      Result:= CurrentNVPointer^.FPEdgeModel
+   else
+      Result:= nil;
+end;
+
+
+function TNeighborsList.GetEdgesModelsPointers: TEdgesModelsPointers;
+var
+   CurrentNVPointer: PNeighborVertex;
+begin
+   SetLength(Result, 0);
+   CurrentNVPointer:= FPNLHead^.FPNextNeighbor;
+   while CurrentNVPointer <> nil do
+   begin
+      SetLength(Result, Length(Result) + 1);
+      Result[High(Result)]:= CurrentNVPointer^.FPEdgeModel;
+      CurrentNVPointer:= CurrentNVPointer^.FPNextNeighbor;
+   end;
+end;
+
+//function TNeighborsList.GetEdgesPointersWith(
+//  VertexModelPointer: PVertexModel): TEdgesModelsPointers;
+//var
+//   CurrentNeighbor: PNeighborVertex;
+//begin
+//   SetLength(Result, 0);
+//   CurrentNeighbor:= FPNLHead^.FPNextNeighbor;
+//   while CurrentNeighbor <> nil do
+//   begin
+//      if CurrentNeighbor^.FPVertexModel = VertexModelPointer then
+//      begin
+//         SetLength(Result, Length(Result) + 1);
+//         Result[High(Result)]:= CurrentNeighbor^.FPEdgeModel;
+//      end;
+//      CurrentNeighbor:= CurrentNeighbor^.FPNextNeighbor;
+//   end;
+//end;
+
+function TNeighborsList.GetVertexPointerOfNeighbor(VertexIndex: TIndex): PVertexModel;
+var
+   CurrentNVPointer: PNeighborVertex;
+begin                                                        
+   Result:= nil;
+   CurrentNVPointer:= FPNLHead^.FPNextNeighbor;
+   while CurrentNVPointer <> nil do
+      if CurrentNVPointer^.FPVertexModel^.FIndex = VertexIndex then
+      begin
+         Result:= CurrentNVPointer^.FPVertexModel;
+         break;
+      end
+      else
+         CurrentNVPointer:= CurrentNVPointer^.FPNextNeighbor;
+end;
+
+function TNeighborsList.GetNeighborsPointers: TVertexesModelsPointers;
+var
+   CurrentNBPointer: PNeighborVertex;
+begin
+   SetLength(Result, 0);
+   CurrentNBPointer:= FPNLHead^.FPNextNeighbor;
+   while CurrentNBPointer <> nil do
+   begin
+      SetLength(Result, Length(Result) + 1);
+      Result[High(Result)]:= CurrentNBPointer^.FPVertexModel;
+      CurrentNBPointer:= CurrentNBPointer^.FPNextNeighbor;
+   end;
+end;
+
+function TNeighborsList.GetNeighborVertexPointer(
+  VertexIndex: Word): PNeighborVertex;
+begin           
+   Result:= FPNLHead^.FPNextNeighbor;
+   while (Result <> nil) and (Result^.FPVertexModel^.FIndex <> VertexIndex) do
+      Result:= Result^.FPNextNeighbor;
+end;
+
+//function TNeighborsList.GetSmallestEdgePointerWith(
+//  VertexModelPointer: PVertexModel): PEdgeModel;
+//var
+//   NeighborsPointers: TEdgesModelsPointers;
+//   CurrentMinValue,
+//   i: Integer;
+//begin
+//   NeighborsPointers:= GetEdgesPointersWith(VertexModelPointer);
+//   Result:= nil;
+//   CurrentMinValue:= High(Integer);
+//   for i := 0 to High(NeighborsPointers) do
+//      if NeighborsPointers[i]^.FValue < CurrentMinValue then
+//      begin
+//         Result:= NeighborsPointers[i];
+//         CurrentMinValue:= NeighborsPointers[i]^.FValue;
+//      end;
+//end;
+     (*
+procedure TNeighborsList.RemoveEdgeModel(EdgeModelPointer: PEdgeModel);
+// procedure cares about removing edgeModel. automaticly deletes current Vertex from neighborList of NeighborVertex
+var
+   CurrentNVPointer: PNeighborVertex;
+   CurrentVertexModelPointer: PVertexModel;
+   i: Integer;
+begin
+   if EdgeModelPointer <> nil then
+   begin
+      CurrentNVPointer:= FPNLHead^.FPNextNeighbor;
+      while (CurrentNVPointer <> nil) and (CurrentNVPointer^.FPEdgeModel <> EdgeModelPointer) do
+         CurrentNVPointer:= CurrentNVPointer^.FPNextNeighbor;
+      if CurrentNVPointer <> nil then
+         with CurrentNVPointer^ do
+         begin
+            if FPEdgeModel^.FDirection = DBidirectional then
+            begin
+               if FPVertexModel = FPEdgeModel^.FPFromVertex then
+                  CurrentVertexModelPointer:= FPEdgeModel^.FPToVertex
+               else
+                  CurrentVertexModelPointer:= FPEdgeModel^.FPFromVertex;
+               FPVertexModel^.FPNeighborsList^.RemoveNeighbor(CurrentVertexModelPointer);
+            end;
+            Dispose(FPEdgeModel);
+            RemoveNeighbor(FPVertexModel);
+         end;
+   end;
+end;   *)
+
+procedure TNeighborsList.RemoveNeighbor(VertexModelPointer: PVertexModel);
+// procedure doesn't care about edgeModel. Edge still exists after removing
+var
+   PreviousNBPointer, CurrentNVPointer: PNeighborVertex;
+begin
+   if VertexModelPointer <> nil then
+   begin
+      PreviousNBPointer:= FPNLHead;
+      while (PreviousNBPointer^.FPNextNeighbor <> nil) and
+         (PreviousNBPointer^.FPNextNeighbor^.FPVertexModel <> VertexModelPointer) do
+            PreviousNBPointer:= PreviousNBPointer^.FPNextNeighbor;
+      if PreviousNBPointer^.FPNextNeighbor <> nil then
+      begin
+         CurrentNVPointer:= PreviousNBPointer^.FPNextNeighbor;
+         PreviousNBPointer^.FPNextNeighbor:= CurrentNVPointer^.FPNextNeighbor;
+         if CurrentNVPointer = FPNLTail then
+            FPNLTail:= PreviousNBPointer;
+         Dec(FAmountOfNeighbors);
+         Dispose(CurrentNVPointer);
+      end;
+   end;
+end;
+
+{ TGraphModel }
+
+constructor TGraphModel.Create(IsOriented: Boolean = False; IsWeighted: Boolean = False);
+begin
+   FOriented:= IsOriented;
+   FWeighted:= IsWeighted;
+   FAmountOfVertexes:= 0;
+   FAmountOfEdges:= 0;
+   New(FPGraphModelHead);
+   FPGraphModelTail:= FPGraphModelHead;
+   FPGraphModelHead^.FPNextGraphModelVertex:= nil;
+   FPGraphModelHead^.FPVertexModel:= nil;
+   SetLength(FEdgesModelsPointers, 0);
+end;
+
+function TGraphModel.CreateNewEdgeModel(FromVertexModelPointer, ToVertexModelPointer: PVertexModel
+  {Direction: TDirection}): PEdgeModel;
+var
+   LeastFreeIndex: TIndex;
+   i: Integer;
+begin
+   Result:= nil;
+   if (FromVertexModelPointer^.FPNeighborsList^.GetVertexPointerOfNeighbor(ToVertexModelPointer^.FIndex) = nil) and
+      (ToVertexModelPointer^.FPNeighborsList^.GetVertexPointerOfNeighbor(FromVertexModelPointer^.FIndex) = nil) then
+   begin
+      LeastFreeIndex:= GetLeastFreeEdgeIndex;
+      FromVertexModelPointer^.FPNeighborsList^.
+            CreateNewNeighbor(ToVertexModelPointer, Result);
+      if not Oriented then
+         ToVertexModelPointer^.
+            FPNeighborsList^.
+               CreateNewNeighbor(FromVertexModelPointer, Result);
+      Inc(FAmountOfEdges);
+      SetLength(FEdgesModelsPointers, Length(FEdgesModelsPointers) + 1);
+      FEdgesModelsPointers[High(FEdgesModelsPointers)]:= Result;
+      with Result^ do
+      begin
+         FDirection:= TDirection(Oriented);
+         FIndex:= LeastFreeIndex;
+         FPFromVertex:= FromVertexModelPointer;
+         FPToVertex:= ToVertexModelPointer;
+         FName:= '';
+         Inc(LeastFreeIndex);
+         while LeastFreeIndex <> 0 do
+         begin
+            FName:= Char((LeastFreeIndex mod 36) + 64) + FName;
+            LeastFreeIndex:= LeastFreeIndex div 36;
+         end;
+
+      end;
+   end;
+end;
+
+function TGraphModel.CreateNewVertexModel: PVertexModel;
+var
+   LeastIndex: TIndex;
+begin
+   Inc(FAmountOfVertexes);
+   LeastIndex:= GetLeastFreeVertexIndex;
+   New(FPGraphModelTail^.FPNextGraphModelVertex);
+   FPGraphModelTail:= FPGraphModelTail^.FPNextGraphModelVertex;
+   FPGraphModelTail^.FPNextGraphModelVertex:= nil;
+   New(FPGraphModelTail^.FPVertexModel);
+   with FPGraphModelTail^.FPVertexModel^ do
+   begin
+      FIndex:= LeastIndex;
+      FName:= IntToStr(FIndex+1);
+      New(FPNeighborsList);
+      FPNeighborsList^:= TNeighborsList.Create;
+   end;
+   Result:= FPGraphModelTail^.FPVertexModel;
+//   SetLength(FVertexesModelsPointers, FAmountOfVertexes);
+//   FVertexesModelsPointers[High(FVertexesModelsPointers)]:= Result;
+end;
+
+destructor TGraphModel.Destroy;
+var
+   VertexesModelsPointers: TVertexesModelsPointers;
+   i: Integer;
+begin
+   VertexesModelsPointers:= GetVertexesModelsPointers;
+   for i := 0 to High(VertexesModelsPointers) do
+      RemoveVertexModel(VertexesModelsPointers[i]);
+   Dispose(FPGraphModelHead);
+   inherited;
+end;
+
+function TGraphModel.GetEdgeModelPointer(EdgeIndex: TIndex): PEdgeModel;
+var
+   i: Integer;
+begin
+   Result:= nil;
+   for i := 0 to High(FEdgesModelsPointers) do
+      if FEdgesModelsPointers[i]^.FIndex = EdgeIndex then
+      begin
+         Result:= FEdgesModelsPointers[i];
+         break;
+      end;
+end;
+
+function TGraphModel.GetLeastFreeEdgeIndex: TIndex;
+var
+   i: TIndex;
+begin
+   Result:= 0;
+   i:= 0;
+   while i < Length(FEdgesModelsPointers) do
+      if FEdgesModelsPointers[i]^.FIndex = Result then
+      begin
+         Inc(Result);
+         i:= 0;
+      end
+      else
+         Inc(i);
+end;
+
+function TGraphModel.GetLeastFreeVertexIndex: TIndex;
+var
+   CurrentGVPointer: PGraphModelVertex;
+begin
+   Result:= 0;
+   CurrentGVPointer:= FPGraphModelHead^.FPNextGraphModelVertex;
+   while CurrentGVPointer <> nil do
+      if Result = CurrentGVPointer^.FPVertexModel^.FIndex then
+      begin
+         Inc(Result);
+         CurrentGVPointer:= FPGraphModelHead^.FPNextGraphModelVertex;
+      end
+      else
+         CurrentGVPointer:= CurrentGVPointer^.FPNextGraphModelVertex;
+end;
+
+function TGraphModel.GetVertexesModelsPointers: TVertexesModelsPointers;
+var
+   CurrentGVPointer: PGraphModelVertex;
+begin
+   SetLength(Result, 0);
+   CurrentGVPointer:= FPGraphModelHead^.FPNextGraphModelVertex;
+   while CurrentGVPointer <> nil do
+   begin
+      SetLength(Result, Length(Result) + 1);
+      Result[High(Result)]:= CurrentGVPointer^.FPVertexModel;
+      CurrentGVPointer:= CurrentGVPointer^.FPNextGraphModelVertex;
+   end;
+end;
+
+function TGraphModel.GetVertexModelPointer(VertexName: TName): PVertexModel;
+var
+   CurrentGVPointer: PGraphModelVertex;
+begin
+   Result:= nil;
+   CurrentGVPointer:= FPGraphModelHead^.FPNextGraphModelVertex;
+   while (CurrentGVPointer <> nil) and
+      (CurrentGVPointer^.FPVertexModel^.FName <> VertexName) do
+         CurrentGVPointer:= CurrentGVPointer^.FPNextGraphModelVertex;
+   if CurrentGVPointer <> nil then
+      Result:= CurrentGVPointer^.FPVertexModel;
+end;
+
+function TGraphModel.GetVertexModelPointer(VertexIndex: TIndex): PVertexModel;
+var
+   CurrentGVPointer: PGraphModelVertex;
+begin
+   Result:= nil;
+   CurrentGVPointer:= FPGraphModelHead^.FPNextGraphModelVertex;
+   while (CurrentGVPointer <> nil) and
+      (CurrentGVPointer^.FPVertexModel^.FIndex <> VertexIndex) do
+         CurrentGVPointer:= CurrentGVPointer^.FPNextGraphModelVertex;
+   if CurrentGVPointer <> nil then
+      Result:= CurrentGVPointer^.FPVertexModel;
+end;
+
+procedure TGraphModel.RemoveEdgeModel(EdgeModelPointer: PEdgeModel);
+// procedure cares about deleting edge from both vertexes' lists if DBidirectional  !!
+var
+   i: Integer;
+begin
+   i:= 0;
+   while (i < Length(FEdgesModelsPointers)) and (FEdgesModelsPointers[i] <> EdgeModelPointer) do
+      Inc(i);
+   if i <> Length(FEdgesModelsPointers) then
+      Dec(FAmountOfEdges);
+   while i < Length(FEdgesModelsPointers) - 1 do
+   begin
+      FEdgesModelsPointers[i]:= FEdgesModelsPointers[i + 1];
+      Inc(i);
+   end;
+   SetLength(FEdgesModelsPointers, Length(FEdgesModelsPointers) - 1);
+   with EdgeModelPointer^ do
+   begin
+      FPFromVertex^.FPNeighborsList^.RemoveNeighbor(FPToVertex);
+      FPToVertex^.FPNeighborsList^.RemoveNeighbor(FPFromVertex);
+   end;
+   Dispose(EdgeModelPointer);
+end;
+
+
+procedure TGraphModel.RemoveVertexModel(VertexModelPointer: PVertexModel);
+var
+   PreviousGVPointer, CurrentGVPointer: PGraphModelVertex;
+   NearEdgesModelsPointers: TEdgesModelsPointers;
+   i: Integer;
+begin
+   if VertexModelPointer <> nil then
+   begin
+      PreviousGVPointer:= FPGraphModelHead;
+      while (PreviousGVPointer^.FPNextGraphModelVertex <> nil) and
+         (PreviousGVPointer^.FPNextGraphModelVertex^.FPVertexModel <> VertexModelPointer) do
+            PreviousGVPointer:= PreviousGVPointer^.FPNextGraphModelVertex;
+      if PreviousGVPointer^.FPNextGraphModelVertex <> nil then
+      begin
+         CurrentGVPointer:= PreviousGVPointer^.FPNextGraphModelVertex;
+         if CurrentGVPointer = FPGraphModelTail then
+            FPGraphModelTail:= PreviousGVPointer;
+         PreviousGVPointer^.FPNextGraphModelVertex:= CurrentGVPointer^.FPNextGraphModelVertex;
+         NearEdgesModelsPointers:= CurrentGVPointer^.FPVertexModel^.FPNeighborsList^.GetEdgesModelsPointers;
+         for i := 0 to High(NearEdgesModelsPointers) do
+            RemoveEdgeModel(NearEdgesModelsPointers[i]);
+         CurrentGVPointer^.FPVertexModel^.FPNeighborsList^.Destroy;
+         Dispose(CurrentGVPointer^.FPVertexModel);
+         Dispose(CurrentGVPointer);
+         Dec(FAmountOfVertexes);
+         while PreviousGVPointer^.FPNextGraphModelVertex <> nil do
+            PreviousGVPointer:= PreviousGVPointer^.FPNextGraphModelVertex;
+      end;
+   end;
+end;
+
+procedure TGraphModel.SetOriented(Value: Boolean);
+var
+  i: Integer;
+begin
+   case Value of
+      True: FOriented:= True; // do nothing, because all the edges are already bidirectional
+      False:
+         if FOriented then
+         begin
+            for i := 0 to High(FEdgesModelsPointers) do
+               with FEdgesModelsPointers[i]^ do
+                  if (FDirection = DUnidirectional) and
+                    (FPToVertex^.FPNeighborsList^.GetVertexPointerOfNeighbor(FPFromVertex^.FIndex) = nil) then
+                     FPToVertex^.FPNeighborsList^.CreateNewNeighbor(FPFromVertex, FEdgesModelsPointers[i]);
+            FOriented:= False;
+         end;
+   end;
+end;
+
+procedure TGraphModel.SetWeighted(Value: Boolean);
+var
+  i: Integer;
+begin
+   case Value of
+      True: FWeighted:= True;
+      False: // setting all the edges' values to 1
+      begin
+         for i := 0 to High(FEdgesModelsPointers) do
+            FEdgesModelsPointers[i]^.FValue:= 1;
+         FWeighted:= False;
+      end;
+   end;
+end;
+
+end.

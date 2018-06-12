@@ -1,0 +1,55 @@
+unit UnitAlgorithms;
+
+interface
+
+uses
+   UnitTGraphModel, System.Generics.Collections;
+
+type
+   TGraphModelWay = array of Pointer;
+   TGraphModelWays = array of TGraphModelWay;
+
+
+function DijkstraAlgorithm(Graph: TGraphModel; StartVertexModelPointer: PVertexModel): TGraphModelWays;
+
+implementation
+
+type
+   TDijkstraVertex = record
+      FPVertexModel, FPPrevVertexModel = TVertexModel;
+      FPEdgeModelWithPrevVertex = TEdgeModel;
+      FMinLength = Cardinal;
+   end;
+   TDijkstraList = class(TList<TDijkstraVertex>)
+   public
+
+   end;
+
+function DijkstraAlgorithm(Graph: TGraphModel; StartVertexModelPointer: PVertexModel): TGraphModelWays;
+var
+   DijkstraVertexes: TList<TDijkstraVertex>;
+   VertexesModelsPointers: TVertexesModelsPointers;
+   i: Integer;
+begin
+   DijkstraVertexes:= TList<TDijkstraVertex>.Create;
+   VertexesModelsPointers:= Graph.GetVertexesModelsPointers;
+   for i := 0 to High(VertexesModelsPointers) do
+      DijkstraVertexes.Add()
+
+   // SetLength(DijkstraVertexes, Length(VertexesModelsPointers));
+   {
+   for i := 0 to High(DijkstraVertexes) do
+      with DijkstraVertexes[i] do
+      begin
+         FPVertexModel:= VertexesModelsPointers[i];
+         FPPreviousVertexeModel:= nil;
+         FPedgeTOPreviousVertexModel:= nil;
+         WayLength:= High(Cardinal);
+         Checked:= False;
+      end;
+    }
+
+end;
+
+
+end.

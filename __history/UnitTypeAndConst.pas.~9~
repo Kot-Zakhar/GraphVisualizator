@@ -1,0 +1,123 @@
+unit UnitTypeAndConst;
+
+interface
+
+uses Vcl.Graphics;
+
+const
+   NameLength = 20;
+
+type
+   TIndex = Word;
+   TAmount = TIndex;
+   TEdgeValue = Integer;
+   TName = String[NameLength];
+   TDirection = (DBidirectional, DUnidirectional);
+
+   TArrowSettings = record
+      LineLength, CenterLength: Byte;
+      HalfAngle, LineSize: Extended;
+   end;
+
+   TCustomFont = record
+      Name: TFontName;
+      Size: Integer;
+      Color: TColor;
+      CharSet: TFontCharset;
+   end;
+
+   TVisualSettings = record
+      Vertex: record
+         ActiveState, CommonState: record
+            Line: record
+               Width: Byte;
+               Color: TColor;
+            end;
+            FillColor: TColor;
+            TextFont: TCustomFont;
+         end;
+         Radius: Word;
+      end;
+      Edge: Record
+         ActiveState, CommonState: record
+            Width: Byte;
+            Color: TColor;
+            TextFont: TCustomFont;
+         end;
+         ArrowSettings: TArrowSettings;
+      end;
+      procedure ApplyFontSettings(Font: TFont; Settings: TCustomFont);
+   end;
+
+const
+   DefaultVisualSettings: TVisualSettings = (
+      Vertex: (
+         ActiveState: (
+            Line: (
+               Width: 3;
+               Color: clBlack;
+            );
+            FillColor: clRed;
+            TextFont: (
+               Name: 'Tahoma';
+               Size: 8;
+               Color: clRed;
+               CharSet: 0;
+            );
+         );
+         CommonState: (
+            Line: (
+               Width: 1;
+               Color: clBlack;
+            );
+            FillColor: ClBlue;
+            TextFont: (
+               Name: 'Tahoma';
+               Size: 8;
+               Color: clBlue;
+               CharSet: 0;
+            );
+         );
+         Radius: 20;
+      );
+      Edge: (
+         ActiveState: (
+            Width: 3;
+            Color: clRed;
+            TextFont: (
+               Name: 'Tahoma';
+               Size: 8;
+               Color: clRed;
+               CharSet: 0;
+            );
+         );
+         CommonState: (
+            Width: 1;
+            Color: clBlue;
+            TextFont: (
+               Name: 'Tahoma';
+               Size: 8;
+               Color: clBlue;
+               CharSet: 0;
+            );
+         );
+         ArrowSettings: (
+            LineLength: 30;
+            CenterLength: 24;
+            HalfAngle: 0.35;
+            LineSize: 0.6;
+         );
+      );
+   );
+
+implementation
+
+procedure TVisualSettings.ApplyFontSettings(Font: TFont; Settings: TCustomFont);
+begin
+   Font.Charset:= Settings.CharSet;
+   Font.Name:= Settings.Name;
+   Font.Size:= Settings.Size;
+   Font.Color:= Settings.Color;
+end;
+
+end.
